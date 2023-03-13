@@ -65,9 +65,10 @@ def build_dataset(dataset_name: str, path: str):
     }
 
     prompts = {
-        "sbic" : "{text} \n {label}",
-        "aae": "{text} \n The occupation of this person is {label}",
-        "bias": "Post:{text}\nQuestion: Does this post cotain offensive language?\nAnswer: {label}"
+        "aae" : "{text} \n {label}",
+        "bias": "{text} \n The occupation of this person is {label}",
+        "sbic": "Post:{text}\nQuestion: Does this post cotain offensive language?\nAnswer: {label}",
+        "hatexplain" : "{text} \n {label}"
     }
 
     try:
@@ -92,7 +93,7 @@ def run_dataset(train: List[str], test: List[str], test_labels: List[str], model
             
             input_prompts = build_demonstration(demonstration_name, demonstration_params, train, test)
 
-            responses = model.generate_from_prompts(input_prompts)
+            #responses = model.generate_from_prompts(input_prompts)
 
 
 def main(args):

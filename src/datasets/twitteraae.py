@@ -30,8 +30,8 @@ class TwitterAAE(Dataset):
 
             train, test = self.read_data_file(os.path.join(self.path, split+"_text"))
 
-            self.datasets['train'].append(train)
-            self.datasets['test'].append(test)
+            self.datasets['train'].extend(train)
+            self.datasets['test'].extend(test)
 
 
     def read_data_file(self, input_file: str):
@@ -45,7 +45,7 @@ class TwitterAAE(Dataset):
         labels = self.label_map[label_name]
 
         train = list(zip(lines[:40000], [labels[0]]*40000, [labels[1]]*40000))
-        test = list(zip((lines[42000:44000], [labels[0]]*2000, [labels[1]]*2000)))
+        test = list(zip(lines[42000:44000], [labels[0]]*2000, [labels[1]]*2000))
 
         return train, test
 
@@ -54,6 +54,7 @@ class TwitterAAE(Dataset):
         train_prompts = []
 
         for item in self.datasets['train']:
+
             prompt = self.prompt.format(text = item[0], label = item[1])
 
             train_prompts.append(prompt)
@@ -63,6 +64,7 @@ class TwitterAAE(Dataset):
         test_labels = []
 
         for item in self.datasets['test']:
+
             prompt = self.prompt.format(text = item[0], label = "")
 
             test_prompts.append(prompt)
