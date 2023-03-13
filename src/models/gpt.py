@@ -29,7 +29,7 @@ class GPT:
         text = response['text'].replace('\n', ' ').strip()
         return text
 
-    def generate_from_prompts(self, examples: Iterable[str], fout_path:str) -> List[str]:
+    def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
         lines_length = len(examples)
         logger.info(f'Num examples = {lines_length}')
         i = 0
