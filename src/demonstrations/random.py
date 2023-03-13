@@ -6,8 +6,7 @@ from tqdm import tqdm
 
 class RandomSampler:
     
-    def __init__(self, seed = 42, shots = 16):
-        random.seed(seed)
+    def __init__(self, shots = 16):
         self.shots = shots
     
     def create_demonstrations(self, train_set: Iterable[str], test_set: Iterable[str]) -> List[str]:
