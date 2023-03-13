@@ -27,7 +27,7 @@ class BiasInBios(Dataset):
             if not os.path.exists(filepath):
                 raise ValueError(f"Bias in Bios data: {filepath} does not exist")
 
-            self.datasets[filename[:-8]] = pickle.load(open(filepath), 'rb')
+            self.datasets[filename[:-7]] = pickle.load(open(filepath, 'rb'))
     
     def create_prompts(self) -> Tuple[List[str], List[str], List[str]]:
         

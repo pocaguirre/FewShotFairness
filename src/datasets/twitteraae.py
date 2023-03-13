@@ -1,5 +1,4 @@
 import os
-import random
 
 from typing import Tuple, List
 
@@ -11,16 +10,14 @@ class TwitterAAE(Dataset):
     def __init__(self, path: str, prompt: str):
         super().__init__(path, prompt)
 
-        self.datasets = {}
+        self.datasets = dict()
 
         self.label_map = {
-            "pos_pos", ("happy", "aa"),
-            "pos_neg", ("happy", "wh"),
-            "neg_pos", ("sad", "aa"),
-            "neg_neg", ("sad", "wh"),
-
+            "pos_pos": ("happy", "aa"),
+            "pos_neg": ("happy", "wh"),
+            "neg_pos": ("sad", "aa"),
+            "neg_neg": ("sad", "wh"),
         }
-
 
         if not os.path.exists(self.path):
 
@@ -38,7 +35,7 @@ class TwitterAAE(Dataset):
 
 
     def read_data_file(self, input_file: str):
-        with open(input_file, 'r') as f:
+        with open(input_file, 'r', encoding='latin-1') as f:
             lines = f.readlines()
         
         np.random.shuffle(lines) 

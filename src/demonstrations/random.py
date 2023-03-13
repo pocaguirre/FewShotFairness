@@ -16,6 +16,6 @@ class RandomSampler:
         for item in tqdm(test_set):
             train_dems = random.sample(train_set, self.shots)
 
-            demonstrations.append(train_dems + '\n' + item)
+            demonstrations.append(" \n".join(train_dems) + item)
         
         return demonstrations

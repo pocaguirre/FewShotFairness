@@ -27,7 +27,7 @@ class Hatexplain(Dataset):
         self.datasets['train']= [data[x] for x in splits['train']]
         self.datasets['test']= [data[x] for x in splits['test']]
     
-    def get_majority(self, lst) -> str:
+    def get_majority(self, lst: List[str]) -> str:
         c = Counter(lst)
         rank = c.most_common()
         if len(rank) == 1:
@@ -43,7 +43,9 @@ class Hatexplain(Dataset):
 
         for item in self.datasets['train']:
 
-            label = self.get_majority(item["annotators"]["label"])
+            labels = [x['label'] for x in item["annotators"]]
+
+            label = self.get_majority(labels)
 
             if label is not None:
 
@@ -58,7 +60,10 @@ class Hatexplain(Dataset):
         test_labels = []
 
         for item in self.datasets['test']:
-            label = self.get_majority(item["annotators"]["label"])
+
+            labels = [x['label'] for x in item["annotators"]]
+
+            label = self.get_majority(labels)
 
             if label is not None:
 
