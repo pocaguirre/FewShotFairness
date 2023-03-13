@@ -41,9 +41,6 @@ class TwitterAAE(Dataset):
         with open(input_file, 'r') as f:
             lines = f.readlines()
         
-        random.seed(2020)
-        os.environ['PYTHONHASHSEED'] = str(2020)
-        np.random.seed(2020)
         np.random.shuffle(lines) 
 
         label_name = os.path.basename(input_file)[:-5]
