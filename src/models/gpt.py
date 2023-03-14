@@ -5,7 +5,7 @@ import logging
 from typing import Iterable, List 
 
 import openai
-import tqdm
+from tqdm import tqdm 
 
 logger = logging.getLogger(__name__ +'.models')
 logging.getLogger("openai").setLevel(logging.WARNING)
@@ -21,7 +21,7 @@ class GPT:
         response = openai.Completion.create(model=self.model_name, 
                                             prompt=prompt, 
                                             temperature=temperature,
-                                            max_tokens=100
+                                            max_tokens=1
                                             )
         return response
 

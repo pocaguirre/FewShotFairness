@@ -15,6 +15,7 @@ from .datasets.twitteraae import TwitterAAE
 from .datasets.sbic import SBIC
 
 from .models.gpt import GPT
+from .models.chatgpt import ChatGPT
 from .models.hf import HF
 
 from .demonstrations.random import RandomSampler
@@ -40,10 +41,10 @@ def build_demonstration(demonstration_name: str, demonstration_params: Dict[str,
     return sampler.create_demonstrations(train, test)
 
 
-def build_model(model_name: str):
+def build_model(model_name: str, dataset: str):
     models = {
         "gpt3" : GPT("text-curie-001"),
-        "chatgpt": GPT("gpt-3.5-turbo"),
+        "chatgpt": ChatGPT("gpt-3.5-turbo", dataset),
         "flan" : HF("https://api-inference.huggingface.co/models/google/flan-t5-large"),
         "ul2" : HF("https://api-inference.huggingface.co/models/google/ul2")
     }
@@ -79,7 +80,7 @@ def build_dataset(dataset_name: str, path: str):
     return dataset.create_prompts()
 
 
-def run_dataset(train: List[str], test: List[str], test_labels: List[str], models_and_demonstrations: Dict[str, List[str]]):
+def run_dataset(train: List[str], test: List[str], test_labels: List[str], dataset: str, models_and_demonstrations: Dict[str, List[str]]):
 
     demonstrations = models_and_demonstrations['demonstrations']
     models = models_and_demonstrations['models']
@@ -87,7 +88,7 @@ def run_dataset(train: List[str], test: List[str], test_labels: List[str], model
     for model_name in models:
         for demonstration_name in demonstrations:
 
-            model = build_model(model_name)
+            model = build_model(model_name, dataset)
 
             demonstration_params = demonstrations[demonstration_name]
             
@@ -113,7 +114,7 @@ def main(args):
 
         train, test, test_labels = build_dataset(dataset, datasets[dataset]['path'])
 
-        run_dataset(train, test, test_labels, datasets[dataset])
+        run_dataset(train, test, test_labels, dataset, datasets[dataset])
 
 
 if __name__ == "__main__":
