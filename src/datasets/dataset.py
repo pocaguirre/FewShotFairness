@@ -1,12 +1,12 @@
 from typing import Tuple, List
 
+
 class Dataset:
-
-    def __init__(self, path: str, prompt: str):
-
+    def __init__(self, path: str):
         self.path = path
 
-        self.prompt = prompt
+    def build_prompt(self, text: str, label: str) -> str:
+        pass
 
-    def create_prompts(self) -> Tuple[List[str], List[str], List[str]]:
+    def create_prompts(self) -> Tuple[List[str], List[str], List[str], List[List[str]]]:
         pass
