@@ -2,29 +2,41 @@ import os
 
 import logging
 
-from typing import Iterable, List
+from typing import Iterable, List, Dict, Any
 
 import openai
 from tqdm import tqdm
+
+from .apimodel import APIModel
 
 logger = logging.getLogger(__name__ + ".models")
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
-class GPT:
-    def __init__(self, model_name: str, batch_size: int = 32):
-        
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-        self.model_name = model_name
-        self.batch_size = batch_size
+class GPT(APIModel):
+    def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
 
-    def get_response(self, prompt: Iterable[str], temperature=1):
+        super.__init__(model_name, temperature, max_tokens)
+
+        openai.api_key = os.environ["OPENAI_API_KEY"]
+        self.batch_size = 32
+
+
+    def get_response(self, prompt: Iterable[str]) -> Dict[str, Any]:
+        """Overloaded get_response to deal with batching
+
+        :param prompt: prompts as batch
+        :type prompt: Iterable[str]
+        :return: responses from GPT3 API endpoint
+        :rtype: Dict[str, Any]
+        """        
         response = openai.Completion.create(
-            model=self.model_name, prompt=prompt, temperature=temperature, max_tokens=15
+            model=self.model_name, prompt=prompt, temperature=self.temperature, max_tokens=self.max_tokens
         )
+
         return response
 
-    def format_response(self, response):
+    def format_response(self, response: Dict[str, Any]) -> str:
         text = response["text"].replace("\n", " ").strip()
         return text
 
@@ -43,7 +55,7 @@ class GPT:
                 response_batch = [""] * len(prompt_batch)
 
                 for choice in response.choices:
-                    response_batch[choice.index] = self.format_response(choice.text)+ "\n"
+                    response_batch[choice.index] = self.format_response(choice.text)
 
                 responses.extend(response_batch)
 
@@ -52,13 +64,13 @@ class GPT:
                     try:
                         _r = self.get_response(prompt_batch[i])["choices"][0]
                         line = self.format_response(_r)
-                        responses.append(line + "\n")
+                        responses.append(line)
                     except:
                         l_prompt = len(prompt_batch[i])
                         _r = self.get_response(prompt_batch[i][l_prompt - 2000 :])[
                             "choices"
                         ][0]
                         line = self.format_response(_r)
-                        responses.append(line + "\n")
+                        responses.append(line)
 
         return responses
