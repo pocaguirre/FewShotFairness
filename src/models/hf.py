@@ -14,7 +14,7 @@ from .apimodel import APIModel
 class HF(APIModel):
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
 
-        super.__init__(model_name, temperature, max_tokens)
+        super().__init__(model_name, temperature, max_tokens)
 
         self.api_key = os.getenv("HF_ACCESS_TOKEN")
         self.headers = {"Authorization": f"Bearer {self.api_key}"}

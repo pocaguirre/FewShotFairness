@@ -19,7 +19,7 @@ class GPT(APIModel):
     """
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
 
-        super.__init__(model_name, temperature, max_tokens)
+        super().__init__(model_name, temperature, max_tokens)
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
         self.batch_size = 32
