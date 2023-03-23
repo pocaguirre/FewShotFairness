@@ -10,6 +10,8 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
     recall, specificity, and macro f1 for each group 
     and largest gap in recall for each label
 
+    Code heavily modified from https://github.com/pocaguirre/jiant/blob/master/jiant/ext/fairness/DF_training.py
+
     :param preds: list of predictions from model
     :type preds: List[str]
     :param labels: list of groundtruth labels
@@ -31,17 +33,17 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
 
     # create subgroups to focus on
     demographic_groups = None
-    
+
     # hatexplain requires filtering of certain classes to focus on
     if dataset == "hatexplain-race":
         demographic_groups = ["African", "Arab", "Asian", "Hispanic", "Caucasian", "Indian", "Indigenous"]
-    
+
     elif dataset == "hatexplain-gender":
         demographic_groups = ["Men", "Women"]
-    
+
     else:
         demographic_groups = list(set([element for sublist in demographics for element in sublist]))  
-    
+
     # clean up predictions
     preds = [x.lower() for x in preds]
 
@@ -67,11 +69,20 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
                 dummy_preds.append(labels_dict[label])
                 break
             # if not we add -1 instead
-            else:
-                dummy_preds.append(-1)
-    
+        else:
+            dummy_preds.append(-1)
+
     dummy_preds = np.array(dummy_preds)
     dummy_labels = np.array(dummy_labels)
+
+    # remove predictions that have demographics not in the set 
+    # mostly for hatexplain which has multiple demographics per label
+    demographic_index = [i for i, item in enumerate(demographics) if len(set(demographic_groups).intersection(set(item))) != 0 ]
+
+    demographics = [demographics[i] for i in demographic_index]
+
+    dummy_preds = dummy_preds[demographic_index]
+    dummy_labels = dummy_labels[demographic_index]
 
     # get total score
     scores['total_score'] = f1_score(dummy_labels, dummy_preds, average="macro", labels = list(labels_dict.values()))
@@ -115,7 +126,7 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
 
             one_minus_gap = 1-gap
             gaps.append([group1, group2, gap, one_minus_gap])
-    
+
     # get the maximum TPR gap per class
     max_gaps = {}
     for i, label in enumerate(labels_set):
