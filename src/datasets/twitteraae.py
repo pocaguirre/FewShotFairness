@@ -11,6 +11,12 @@ from .dataset import Dataset
 
 class TwitterAAE(Dataset):
     def __init__(self, path: str):
+        """Wrapper for TwitterAAE dataset
+
+        :param path: path to TwitterAAE dataset
+        :type path: str
+        :raises ValueError: path is invalid
+        """        
         super().__init__(path)
 
         self.datasets = dict()
@@ -28,6 +34,7 @@ class TwitterAAE(Dataset):
         self.datasets["train"] = []
         self.datasets["test"] = []
 
+        # create in each split of twitter aae and combine them together
         for split in ["pos_pos", "pos_neg", "neg_pos", "neg_neg"]:
             train, test = self.read_data_file(os.path.join(self.path, split + "_text"))
 
@@ -38,13 +45,29 @@ class TwitterAAE(Dataset):
         random.shuffle(self.datasets["test"])
 
     def build_prompt(self, text: str, label: str) -> str:
+        """Create prompt for twitter aae
+
+        :param text: input text
+        :type text: str
+        :param label: label for input text
+        :type label: str
+        :return: prompt using input text and label
+        :rtype: str
+        """        
         return text + " \n " + label
 
-    def read_data_file(self, input_file: str):
-        """
+    def read_data_file(self, input_file: str)-> Tuple[List[str], List[str]]:
+        """Read TwitterAAE data file
+        
         Using split from 
         https://github.com/HanXudong/fairlib/blob/main/data/src/Moji/deepmoji_split.py
-        """
+        S
+        :param input_file: path to input file
+        :type input_file: str
+        :return: training and testing example for split
+        :rtype: str
+        """        
+
         with open(input_file, "r", encoding="latin-1") as f:
             lines = f.readlines()
 
@@ -60,9 +83,17 @@ class TwitterAAE(Dataset):
         return train, test
 
     def create_prompts(self) -> Tuple[List[str], List[str], List[str], List[List[str]]]:
+        """Create prompts for HatExplain
+
+        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set 
+        :rtype: Tuple[List[str], List[str], List[str], List[List[str]]]
+        """        
         train_prompts = []
 
+        # create train prompts
         for item in self.datasets["train"]:
+
+            # item 0 is text, item 1 is label
             prompt = self.build_prompt(item[0], item[1])
 
             train_prompts.append(prompt)
@@ -73,6 +104,7 @@ class TwitterAAE(Dataset):
 
         test_demographics = []
 
+        # create test prompts
         for item in self.datasets["test"]:
             prompt = self.build_prompt(item[0], "")
 
@@ -80,6 +112,7 @@ class TwitterAAE(Dataset):
 
             test_labels.append(item[1])
 
+            # item 2 is demographics
             test_demographics.append([item[2]])
 
         return train_prompts, test_prompts, test_labels, test_demographics
