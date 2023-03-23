@@ -1,0 +1,38 @@
+[general]
+seed = 2020
+
+
+[datasets]
+  [datasets.bias]
+    path = "data/biasbios"
+    [datasets.bias.demonstrations]
+      [datasets.bias.demonstrations.random]
+      shots = 5
+      [datasets.bias.demonstrations.zeroshot]
+    [datasets.bias.models]
+      [datasets.bias.models.gpt3]
+      temperature = 1
+      [datasets.bias.models.chatgpt]
+      temperature = 1
+  [datasets.aae]
+    path = "data/moji/twitteraae_sentiment_race"
+    [datasets.aae.demonstrations]
+      [datasets.aae.demonstrations.random]
+      shots = 5
+      [datasets.aae.demonstrations.zeroshot]
+    [datasets.aae.models]
+      [datasets.aae.models.gpt3]
+      temperature = 1
+      [datasets.aae.models.chatgpt]
+      temperature = 1
+  [datasets.hatexplain]
+    path = "data/HateXplain"
+    [datasets.hatexplain.demonstrations]
+      [datasets.hatexplain.demonstrations.random]
+      shots = 5
+      [datasets.hatexplain.demonstrations.zeroshot]
+    [datasets.hatexplain.models]
+      [datasets.hatexplain.models.gpt3]
+      temperature = 1
+      [datasets.hatexplain.models.chatgpt]
+      temperature = 1
