@@ -44,11 +44,16 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
     else:
         demographic_groups = list(set([element for sublist in demographics for element in sublist]))  
 
+    preds_clean = copy.deepcopy(preds)
+
     # clean up predictions
-    preds = [x.lower() for x in preds]
+    preds_clean = [x.lower() for x in preds_clean]
+
+    conv = lambda i : i or ''
+    preds_clean = [conv(i) for i in preds_clean]
 
     if dataset == "bias":
-        preds = [x.replace("lawyer", "attorney") for x in preds]
+        preds_clean = [x.replace("lawyer", "attorney") for x in preds_clean]
 
     # create list of all labels
     labels_set = list(set(labels))
@@ -61,7 +66,7 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
 
     dummy_preds = []
 
-    for pred in preds:
+    for pred in preds_clean:
         
         # see if any of the labels are in the response
         for label in labels_set:            
@@ -79,7 +84,7 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
     # mostly for hatexplain which has multiple demographics per label
     demographic_index = [i for i, item in enumerate(demographics) if len(set(demographic_groups).intersection(set(item))) != 0 ]
 
-    demographics = [demographics[i] for i in demographic_index]
+    demographics_filtered = copy.deepcopy([demographics[i] for i in demographic_index])
 
     dummy_preds = dummy_preds[demographic_index]
     dummy_labels = dummy_labels[demographic_index]
@@ -90,7 +95,7 @@ def metrics(preds: List[str], labels: List[str], dataset: str, demographics: Lis
     for dem in demographic_groups:
 
         # filter out items that do not have the specified demographic
-        index = [i for i, item in enumerate(demographics) if dem in item]
+        index = [i for i, item in enumerate(demographics_filtered) if dem in item]
 
         # calculate f1, recall and specifity for those items
         cnf_matrix = confusion_matrix(dummy_labels[index], dummy_preds[index], labels = list(labels_dict.values()))
