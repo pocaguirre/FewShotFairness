@@ -34,8 +34,32 @@ class HatExplain(Dataset):
         self.datasets["train"] = [data[x] for x in splits["train"]]
         self.datasets["test"] = [data[x] for x in splits["test"]]
 
+        for post in self.datasets['train']:
+
+            annotators = post['annotators']
+
+            for annotator in annotators:
+                label = annotator['label']
+                
+                if label == "normal":
+                    annotator['label'] = "no"
+                else:
+                    annotator['label'] = "yes"
+        
+        for post in self.datasets['test']:
+
+            annotators = post['annotators']
+
+            for annotator in annotators:
+                label = annotator['label']
+                
+                if label == "normal":
+                    annotator['label'] = "no"
+                else:
+                    annotator['label'] = "yes"
+
     def build_prompt(self, text: str, label: str) -> str:
-        return text + " \n " + label
+        return "Post: " + text + "\nQuestion: Does this post contain offensive language?\nAnswer: " + label
 
     def get_majority(self, lst: List[str]) -> Optional[str]:
         """Helper to get majority of a list
@@ -81,9 +105,6 @@ class HatExplain(Dataset):
 
             # if there is no majority label we remove it
             if label is not None:
-                if label == "hatespeech":
-                    label = "hate speech"
-
                 sentence = " ".join(item["post_tokens"])
 
                 prompt = self.build_prompt(sentence, label=label)
@@ -108,9 +129,6 @@ class HatExplain(Dataset):
             label = self.get_majority(labels)
 
             if label is not None:
-                if label == "hatespeech":
-                    label = "hate speech"
-
                 sentence = " ".join(item["post_tokens"])
 
                 prompt = self.build_prompt(sentence, "")
