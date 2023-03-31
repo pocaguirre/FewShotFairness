@@ -2,6 +2,7 @@ from typing import List, Iterable
 
 import pandas as pd
 
+
 class Demonstration:
     def __init__(self, shots: int = 16) -> None:
 
