@@ -8,16 +8,17 @@ import os
 
 import tomllib
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 import random
 
 import numpy as np
+import pandas as pd
 
 from .datasets.biasinbios import BiasInBios
 from .datasets.twitteraae import TwitterAAE
-from .datasets.hatexplain import HatExplain
-from .datasets.dataset import Dataset
+from .datasets.hateexplaingender import HateXplainGender
+from .datasets.hateexplainrace import HateXplainRace
 
 from .models.gpt import GPT
 from .models.chatgpt import ChatGPT
@@ -28,39 +29,43 @@ from .demonstrations.random import RandomSampler
 
 from .utils import metrics
 
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+
 
 def set_randomness(seed: int):
     """Set the randomness of the entire script
 
     :param seed: random seed
     :type seed: int
-    """    
+    """
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
 
-    
+
 def build_demonstration(
     demonstration_name: str,
     demonstration_params: Dict[str, Any],
-    train: List[str],
-    test: List[str],
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    overall_demographics: List[str],
 ) -> List[str]:
     """Build demonstrations based on parameters
 
-    :param demonstration_name: name of demonstration (zeroshot, random)
+    :param demonstration_name: name of demonstration
     :type demonstration_name: str
-    :param demonstration_params: parameters for the demonstration
+    :param demonstration_params: parameters for demonstration
     :type demonstration_params: Dict[str, Any]
-    :param train: list of training prompts
-    :type train: List[str]
-    :param test: list of test prompts
-    :type test: List[str]
+    :param train_df: train prompts and demographics
+    :type train_df: pd.DataFrame
+    :param test_df: train prompts and demographics
+    :type test_df: pd.DataFrame
+    :param overall_demographics: demographics to focus on
+    :type overall_demographics: List[str]
     :raises ValueError: demonstration does not exist
     :return: the list of formed demonstrations
     :rtype: List[str]
-    """    
+    """
 
     shots = None
 
@@ -73,7 +78,7 @@ def build_demonstration(
 
     sampler = RandomSampler(shots=shots)
 
-    return sampler.create_demonstrations(train, test)
+    return sampler.create_demonstrations(train_df, test_df, overall_demographics)
 
 
 def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
@@ -86,12 +91,14 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
     :raises ValueError: model does not exist
     :return: fully formed model
     :rtype: APIModel
-    """    
+    """
     models = {
-        "gpt3": GPT("text-curie-001", **model_params),
+        "gpt3": GPT("text-davinci-003", **model_params),
         "chatgpt": ChatGPT("gpt-3.5-turbo", **model_params),
-        "flan": HF("https://api-inference.huggingface.co/models/google/flan-t5-large", **model_params),
-        "ul2": HF("https://api-inference.huggingface.co/models/google/ul2", **model_params),
+        "flan-ul2": HF(
+            "https://api-inference.huggingface.co/models/google/flan-t5-large",
+            **model_params,
+        ),
     }
 
     model = None
@@ -104,7 +111,9 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
     return model
 
 
-def build_dataset(dataset_name: str, path: str) -> Dataset:
+def build_dataset(
+    dataset_name: str, path: str
+) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
     """Build dataset based on name and path to it
 
     :param dataset_name: name of dataset
@@ -113,10 +122,11 @@ def build_dataset(dataset_name: str, path: str) -> Dataset:
     :type path: str
     :raises ValueError: dataset name does not exist
     :return: Created dataset
-    :rtype: Dataset
-    """    
+    :rtype: Tuple[pd.DataFrame, pd.DataFrame, List[str]]
+    """
     datasets = {
-        "hatexplain": HatExplain,
+        "hatexplain-race": HateXplainRace,
+        "hatexplain-gender": HateXplainGender,
         "aae": TwitterAAE,
         "bias": BiasInBios,
     }
@@ -131,16 +141,19 @@ def build_dataset(dataset_name: str, path: str) -> Dataset:
 
 def run_dataset(
     prompts: List[str],
-    test_labels: List[str],
-    test_demographics: List[str],
+    test_df: pd.DataFrame,
+    overall_demographics: List[str],
     dataset: str,
-    demonstration: str, 
+    demonstration: str,
     models: List[str],
+    output_folder: str,
 ):
 
     for model_name in models:
 
-        logging.info(f"Starting to create {model_name} model for {dataset} with {demonstration}")
+        logging.info(
+            f"Starting to create {model_name} model for {dataset} with {demonstration}"
+        )
 
         model = build_model(model_name, models[model_name])
 
@@ -150,58 +163,72 @@ def run_dataset(
 
         responses = model.generate_from_prompts(prompts)
 
-        if not os.path.exists("./output/responses"):
-            os.makedirs("./output/responses", exist_ok=True)
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder, exist_ok=True)
 
-        with open(os.path.join("./output/responses", f"{model_name}_{dataset}_{demonstration}"), 'w') as csvfile: 
-            csvwriter = csv.writer(csvfile) 
-        
-            csvwriter.writerow(['response', 'label', 'demographic']) 
+        with open(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv"),
+            "w",
+        ) as csvfile:
+            csvwriter = csv.writer(csvfile)
 
-            for response, label, demographic in zip(responses, test_labels, test_demographics):
-                csvwriter.writerow([response, label, demographic])
+            csvwriter.writerow(["prompt", "response", "label", "demographic"])
 
-        logging.info(f"Completed running {model_name} on {dataset} with {demonstration}")
+            for prompt, response, label, demographic in zip(
+                prompts,
+                responses,
+                test_df["labels"].tolist(),
+                test_df["demographics"].tolist(),
+            ):
+                csvwriter.writerow([prompt, response, label, demographic])
 
-        logging.info(f"Calculating metrics for {model_name} on {dataset} with {demonstration}")
+        logging.info(
+            f"Completed running {model_name} on {dataset} with {demonstration}"
+        )
 
-        results = []
+        logging.info(
+            f"Calculating metrics for {model_name} on {dataset} with {demonstration}"
+        )
 
-        if dataset == "hatexplain":
-            results.append(metrics(responses, test_labels, "hatexplain-race", test_demographics))
-            results.append(metrics(responses, test_labels, "hatexplain-gender", test_demographics))
-        else:
-            results.append(metrics(responses, test_labels, dataset, test_demographics))
+        result = metrics(
+            responses,
+            test_df["labels"].tolist(),
+            dataset,
+            test_df["demographics"].tolist(),
+            overall_demographics,
+        )
 
-        for result in results:
+        gaps = result["max_gaps"]
 
-            gaps = result['max_gaps']
+        group_results = result["score"]
 
-            group_results = result['score']
+        logging.info(f"For {model_name} on {dataset}")
+        logging.info(f"F1 Overall: {result['total_score']}")
+        for result in group_results:
+            logging.info(f"F1 {result}: {group_results[result]}")
+        for class_name in gaps:
 
-            logging.info(f"For {model_name} on {dataset}")
-            logging.info(f"F1 Overall: {result['total_score']}")
-            for result in group_results:
-                logging.info(f"F1 {result}: {group_results[result]}")
-            for class_name in gaps:
+            gap = gaps[class_name]
 
-                gap = gaps[class_name]
+            logging.info(
+                f"Largest gap for {class_name} is between {gap[0]} and {gap[1]}: {gap[2]} ({gap[3]})"
+            )
 
-                logging.info(f"Largest gap for {class_name} is between {gap[0]} and {gap[1]}: {gap[2]} ({gap[3]})")
-                
 
 def main(args):
     configpath = args.config
 
-    #open config
+    # open config
     with open(configpath, "rb") as f:
         data = tomllib.load(f)
 
     randomseed = data["general"]["seed"]
 
+    output_folder = data["general"]["output_folder"]
+
     datasets = data["datasets"]
 
-    #set randomness
+    # set randomness
 
     set_randomness(randomseed)
 
@@ -211,27 +238,41 @@ def main(args):
         logging.info(f"Starting to build {dataset} dataset")
 
         # build one dataset to use for all models and all demonstration combinations
-        train, test, test_labels, test_demographics = build_dataset(
+        train_df, test_df, overall_demographics = build_dataset(
             dataset, datasets[dataset]["path"]
         )
 
         logging.info(f"Built {dataset} dataset")
 
-        demonstrations = datasets[dataset]['demonstrations']
+        demonstrations = datasets[dataset]["demonstrations"]
 
         # loop through all demonstrations
         for demonstration in demonstrations:
 
-            logging.info(f"Starting to create {demonstration} demonstration for {dataset} dataset")
+            logging.info(
+                f"Starting to create {demonstration} demonstration for {dataset} dataset"
+            )
 
             # create prompts from dataset
-            prompts = build_demonstration(demonstration, demonstrations[demonstration], train, test)
+            prompts = build_demonstration(
+                demonstration,
+                demonstrations[demonstration],
+                train_df,
+                test_df,
+                overall_demographics,
+            )
 
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")
 
             # run dataset with all models provided
             run_dataset(
-                prompts, test_labels, test_demographics, dataset, demonstration, datasets[dataset]['models']
+                prompts,
+                test_df,
+                overall_demographics,
+                dataset,
+                demonstration,
+                datasets[dataset]["models"],
+                output_folder,
             )
 
 
