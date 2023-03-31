@@ -1,4 +1,4 @@
-import sys 
+import sys
 
 sys.path.append("../../src/")
 
@@ -27,4 +27,4 @@ def test_create_prompts():
 
     dataset = BiasInBios(path)
 
-    train, test, demographics =  dataset.create_prompts()
+    train, test, demographics = dataset.create_prompts()

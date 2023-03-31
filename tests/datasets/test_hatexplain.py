@@ -1,4 +1,4 @@
-import sys 
+import sys
 
 sys.path.append("../../src/")
 
@@ -6,6 +6,7 @@ import pytest
 
 from src.datasets.hateexplaingender import HateXplainGender
 from src.datasets.hateexplainrace import HateXplainRace
+
 
 def test_good_path_gender():
     path = "data/HateXplain"
@@ -28,6 +29,7 @@ def test_create_prompts_gender():
     dataset = HateXplainGender(path)
 
     train, test, demographics = dataset.create_prompts()
+
 
 def test_good_path_race():
     path = "data/HateXplain"
