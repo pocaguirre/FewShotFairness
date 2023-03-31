@@ -1,7 +1,10 @@
 from typing import Dict, Any, List, Iterable
 
+
 class APIModel:
-    def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5) -> None:
+    def __init__(
+        self, model_name: str, temperature: float = 1, max_tokens: int = 5
+    ) -> None:
         """Base model for LLMs
 
         :param model_name: name of model
@@ -10,11 +13,11 @@ class APIModel:
         :type temperature: float, optional
         :param max_tokens: maximum number of tokens generated, defaults to 5
         :type max_tokens: int, optional
-        """        
+        """
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens
-    
+
     def get_response(self, prompt: str) -> Dict[str, Any]:
         """Send request to API with prompt
 
@@ -22,7 +25,7 @@ class APIModel:
         :type prompt: str
         :return: response of API endpoint
         :rtype: Dict[str, Any]
-        """        
+        """
         pass
 
     def format_response(self, response: Dict[str, Any]) -> str:
@@ -32,7 +35,7 @@ class APIModel:
         :type response: Dict[str, Any]
         :return: generated string
         :rtype: str
-        """        
+        """
         pass
 
     def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
@@ -42,5 +45,5 @@ class APIModel:
         :type examples: Iterable[str]
         :return: list of cleaned responses
         :rtype: List[str]
-        """        
+        """
         pass

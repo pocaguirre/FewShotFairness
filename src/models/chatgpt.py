@@ -43,7 +43,7 @@ class ChatGPT(APIModel):
 
         responses = []
 
-        # loop through examples 
+        # loop through examples
         for example in tqdm(examples):
 
             # try to get response

@@ -21,14 +21,20 @@ class HF(APIModel):
 
     def get_response(self, prompt: str) -> Dict[str, Any]:
         payload = json.dumps(
-            {"inputs": prompt, "parameters": {"temperature": self.temperature, "max_new_tokens" : self.max_tokens}}
+            {
+                "inputs": prompt,
+                "parameters": {
+                    "temperature": self.temperature,
+                    "max_new_tokens": self.max_tokens,
+                },
+            }
         )
 
         response = requests.post(self.model_name, headers=self.headers, json=payload)
 
         return json.loads(response.content.decode("utf-8"))
 
-    def format_response(self, response: Dict[str, Any])-> str:
+    def format_response(self, response: Dict[str, Any]) -> str:
         text = response["generated_text"].replace("\n", " ").strip()
         return text
 

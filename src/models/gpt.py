@@ -17,13 +17,13 @@ class GPT(APIModel):
     """Code modified from
     https://github.com/isabelcachola/generative-prompting/blob/main/genprompt/models.py
     """
+
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
 
         super().__init__(model_name, temperature, max_tokens)
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
         self.batch_size = 32
-
 
     def get_response(self, prompt: Iterable[str]) -> Dict[str, Any]:
         """Overloaded get_response to deal with batching
@@ -32,9 +32,12 @@ class GPT(APIModel):
         :type prompt: Iterable[str]
         :return: responses from GPT3 API endpoint
         :rtype: Dict[str, Any]
-        """        
+        """
         response = openai.Completion.create(
-            model=self.model_name, prompt=prompt, temperature=self.temperature, max_tokens=self.max_tokens
+            model=self.model_name,
+            prompt=prompt,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
         )
 
         return response
@@ -50,7 +53,6 @@ class GPT(APIModel):
 
         responses = []
 
-        
         for i in tqdm(range(0, lines_length, self.batch_size), ncols=0):
 
             # batch prompts together
@@ -79,7 +81,9 @@ class GPT(APIModel):
                     except:
                         # if there is an exception make blank
                         l_prompt = len(prompt_batch[i])
-                        _r = self.get_response(prompt_batch[i][l_prompt - 2000 :])["choices"][0]
+                        _r = self.get_response(prompt_batch[i][l_prompt - 2000 :])[
+                            "choices"
+                        ][0]
                         line = self.format_response(_r)
                         responses.append(line)
 
