@@ -1,3 +1,7 @@
+import sys 
+
+sys.path.append("../../src/")
+
 import pytest
 
 from src.datasets.twitteraae import TwitterAAE
