@@ -26,6 +26,9 @@ from .models.hf import HF
 from .models.apimodel import APIModel
 
 from .demonstrations.random import RandomSampler
+from .demonstrations.excludingdemo import ExcludingDemographic
+from .demonstrations.withindemo import WithinDemographic
+from .demonstrations.stratified import StratifiedSampler
 
 from .utils import metrics
 
@@ -67,16 +70,27 @@ def build_demonstration(
     :rtype: List[str]
     """
 
+    demonstrations = {
+        "excluding" : ExcludingDemographic,
+        "zeroshot": RandomSampler,
+        "random" : RandomSampler,
+        "stratified": StratifiedSampler,
+        "within": WithinDemographic
+    }
+
     shots = None
 
     if demonstration_name == "zeroshot":
         shots = 0
-    elif demonstration_name == "random":
-        shots = demonstration_params["shots"]
     else:
+        shots = demonstration_params["shots"]
+
+    try:
+        demonstration = demonstrations[demonstration_name]
+    except KeyError:
         raise ValueError(f"{demonstration_name} does not exist!")
 
-    sampler = RandomSampler(shots=shots)
+    sampler = demonstration(shots=shots)
 
     return sampler.create_demonstrations(train_df, test_df, overall_demographics)
 
