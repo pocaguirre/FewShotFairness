@@ -1,31 +1,43 @@
 import random
 
-from typing import List, Iterable, Tuple
+from typing import List, Iterable
+
+import pandas as pd
 
 from tqdm import tqdm
 
-class RandomSampler:
-    def __init__(self, shots=16) -> None:
+from .demonstration import Demonstration
 
-        self.shots = shots
+
+class RandomSampler(Demonstration):
+    def __init__(self, shots=16) -> None:
+        super().__init__(shots)
 
     def create_demonstrations(
-        self, train_set: Iterable[str], test_set: Iterable[str]
+        self,
+        train_df: pd.DataFrame,
+        test_df: pd.DataFrame,
+        overall_demographics: List[str],
     ) -> List[str]:
         """Create random k-shot from train set and test set
 
-        :param train_set: list of train prompts
-        :type train_set: Iterable[str]
-        :param test_set: list of test prompts
-        :type test_set: Iterable[str]
-        :return: k-shot demonstrations for each test set item 
+        :param train_df: train data
+        :type train_df: pd.DataFrame
+        :param test_df: test data
+        :type test_df: pd.DataFrame
+        :param overall_demographics: demographics to focus on
+        :type overall_demographics: List[str]
+        :return: k-shot demonstrations for each test set item
         :rtype: List[str]
-        """        
+        """
         demonstrations = []
 
-        for item in tqdm(test_set):
-            train_dems = random.sample(train_set, self.shots)
+        for row in tqdm(test_df.itertuples()):
+            train_dems = train_df['prompts'].sample(n=self.shots).tolist()
 
-            demonstrations.append("\n\n".join(train_dems) + "\n\n" + item)
-
+            if len(train_dems) != 0:
+                demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
+            else:
+                demonstrations.append(row.prompts)
+            
         return demonstrations
