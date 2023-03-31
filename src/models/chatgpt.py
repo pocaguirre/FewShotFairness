@@ -54,6 +54,7 @@ class ChatGPT(APIModel):
                     line = self.format_response(line)
                     responses.append(line)
             except:
-                continue
+                response.append("")
+                print(f"Failure of {example}")
 
         return responses

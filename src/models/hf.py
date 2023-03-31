@@ -49,8 +49,9 @@ class HF(APIModel):
             try:
                 response = self.get_response(example)
                 formatted_response = self.format_response(response)
-                responses.append(formatted_response + "\n")
+                responses.append(formatted_response)
             except:
-                continue
+                responses.append("")
+                print(f"Failure of {example}")
 
         return responses
