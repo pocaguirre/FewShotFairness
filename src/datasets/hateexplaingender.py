@@ -11,7 +11,7 @@ class HateXplainGender(HateXplain):
 
         :param path: path to folder containing dataset
         :type path: str
-        """      
+        """
         super().__init__(path)
 
         self.demographics = [
@@ -31,6 +31,6 @@ class HateXplainGender(HateXplain):
 
         :return: returns the train and test prompts, train demographics the labels for the test set and the demographic groups of the test set
         :rtype: Tuple[pd.DataFrame, pd.DataFrame]:
-        """        
+        """
         train_df, test_df = super().create_prompts()
         return train_df, test_df, self.demographics
