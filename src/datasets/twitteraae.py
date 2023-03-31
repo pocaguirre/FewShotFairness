@@ -58,7 +58,7 @@ class TwitterAAE(Dataset):
         :return: prompt using input text and label
         :rtype: str
         """
-        return text + "\n the sentiment of this post is " + label
+        return "Post: " + text + "\nQuestion: Is this post happy or sad?\nAnswer: " + label
 
     def read_data_file(self, input_file: str) -> Tuple[List[str], List[str]]:
         """Read TwitterAAE data file
