@@ -29,7 +29,7 @@ class StratifiedSampler(Demonstration):
             return ""
 
         else: 
-            return intersection[0]
+            return list(intersection)[0]
 
     def create_demonstrations(
         self,

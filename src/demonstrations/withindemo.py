@@ -8,7 +8,7 @@ import pandas as pd
 
 from .demonstration import Demonstration
 
-class ExcludingDemographic(Demonstration):
+class WithinDemographic(Demonstration):
     def __init__(self, shots: int = 16) -> None:
         super().__init__(shots)
 
@@ -24,7 +24,7 @@ class ExcludingDemographic(Demonstration):
 
         for row in tqdm(test_df.itertuples()):
 
-            row_demographics = list(set(overall_demographics).intersection(set_of_overall_demographics))
+            row_demographics = list(set(row.demographics).intersection(set_of_overall_demographics))
             
             filtered_df = train_df[train_df.demographics.str.contains('|'.join(row_demographics))]
 

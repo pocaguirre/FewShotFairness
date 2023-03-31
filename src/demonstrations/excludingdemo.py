@@ -25,9 +25,11 @@ class ExcludingDemographic(Demonstration):
 
         for row in tqdm(test_df.itertuples()):
 
-            row_demographics = list(set(overall_demographics).intersection(set_of_overall_demographics))
-            
+            row_demographics = list(set(row.demographics).intersection(set_of_overall_demographics))
+
             filtered_df = train_df[~train_df.demographics.str.contains('|'.join(row_demographics))]
+
+            print(filtered_df)
 
             train_dems = filtered_df['prompts'].sample(n=self.shots).tolist()
 
