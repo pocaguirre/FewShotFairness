@@ -23,4 +23,4 @@ def test_create_prompts():
 
     dataset = BiasInBios(path)
 
-    train_prompts, test_prompts, test_labels, test_demographics = dataset.create_prompts()
+    train, test, demographics =  dataset.create_prompts()

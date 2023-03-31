@@ -1,26 +1,48 @@
 import pytest
 
-from src.datasets.hatexplain import HatExplain
+from src.datasets.hateexplaingender import HateXplainGender
+from src.datasets.hateexplainrace import HateXplainRace
 
-
-def test_good_path():
+def test_good_path_gender():
     path = "data/HateXplain"
 
-    dataset = HatExplain(path)
+    dataset = HateXplainGender(path)
 
     assert dataset is not None
 
 
-def test_bad_path():
+def test_bad_path_gender():
     path = "data/HatXplain"
 
     with pytest.raises(ValueError) as e_info:
-        dataset = HatExplain(path)
+        dataset = HateXplainGender(path)
 
 
-def test_create_prompts():
+def test_create_prompts_gender():
     path = "data/HateXplain"
 
-    dataset = HatExplain(path)
+    dataset = HateXplainGender(path)
 
-    train_prompts, test_prompts, test_labels, test_demographics = dataset.create_prompts()
+    train, test, demographics = dataset.create_prompts()
+
+def test_good_path_race():
+    path = "data/HateXplain"
+
+    dataset = HateXplainRace(path)
+
+    assert dataset is not None
+
+
+def test_bad_path_race():
+    path = "data/HatXplain"
+
+    with pytest.raises(ValueError) as e_info:
+        dataset = HateXplainRace(path)
+
+
+def test_create_prompts_race():
+    path = "data/HateXplain"
+
+    dataset = HateXplainRace(path)
+
+    train, test, demographics = dataset.create_prompts()

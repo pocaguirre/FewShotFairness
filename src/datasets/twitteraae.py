@@ -1,10 +1,12 @@
-import random
-
 import os
+
+import random
 
 from typing import Tuple, List
 
 import numpy as np
+
+import pandas as pd
 
 from .dataset import Dataset
 
@@ -16,7 +18,7 @@ class TwitterAAE(Dataset):
         :param path: path to TwitterAAE dataset
         :type path: str
         :raises ValueError: path is invalid
-        """        
+        """
         super().__init__(path)
 
         self.datasets = dict()
@@ -44,6 +46,8 @@ class TwitterAAE(Dataset):
         random.shuffle(self.datasets["train"])
         random.shuffle(self.datasets["test"])
 
+        self.demographics = ["aa", "wh"]
+
     def build_prompt(self, text: str, label: str) -> str:
         """Create prompt for twitter aae
 
@@ -53,20 +57,20 @@ class TwitterAAE(Dataset):
         :type label: str
         :return: prompt using input text and label
         :rtype: str
-        """        
+        """
         return text + "\n the sentiment of this post is " + label
 
-    def read_data_file(self, input_file: str)-> Tuple[List[str], List[str]]:
+    def read_data_file(self, input_file: str) -> Tuple[List[str], List[str]]:
         """Read TwitterAAE data file
-        
-        Using split from 
+
+        Using split from
         https://github.com/HanXudong/fairlib/blob/main/data/src/Moji/deepmoji_split.py
         S
         :param input_file: path to input file
         :type input_file: str
         :return: training and testing example for split
         :rtype: str
-        """        
+        """
 
         with open(input_file, "r", encoding="latin-1") as f:
             lines = f.readlines()
@@ -82,13 +86,17 @@ class TwitterAAE(Dataset):
 
         return train, test
 
-    def create_prompts(self) -> Tuple[List[str], List[str], List[str], List[List[str]]]:
+    def create_prompts(
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
         """Create prompts for HatExplain
 
-        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set 
-        :rtype: Tuple[List[str], List[str], List[str], List[List[str]]]
-        """        
+        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set
+        :rtype: Tuple[List[str], List[List[str]], List[str], List[str], List[List[str]], List[str]]
+        """
         train_prompts = []
+
+        train_demographics = []
 
         # create train prompts
         for item in self.datasets["train"]:
@@ -97,6 +105,8 @@ class TwitterAAE(Dataset):
             prompt = self.build_prompt(item[0], item[1])
 
             train_prompts.append(prompt)
+
+            train_demographics.append([item[2]])
 
         test_prompts = []
 
@@ -115,4 +125,16 @@ class TwitterAAE(Dataset):
             # item 2 is demographics
             test_demographics.append([item[2]])
 
-        return train_prompts, test_prompts, test_labels, test_demographics
+        train_df = pd.DataFrame(
+            {"prompts": train_prompts, "demographics": train_demographics}
+        )
+
+        test_df = pd.DataFrame(
+            {
+                "prompts": test_prompts,
+                "demographics": test_demographics,
+                "labels": test_labels,
+            }
+        )
+
+        return train_df, test_df, self.demographics

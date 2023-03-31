@@ -1,9 +1,11 @@
 from typing import Tuple, List
 
+import pandas as pd
+
 
 class Dataset:
-    """Base Class for datasets
-    """    
+    """Base Class for datasets"""
+
     def __init__(self, path: str):
         self.path = path
 
@@ -16,13 +18,15 @@ class Dataset:
         :type label: str
         :return: prompt containing text and label
         :rtype: str
-        """        
+        """
         pass
 
-    def create_prompts(self) -> Tuple[List[str], List[str], List[str], List[List[str]]]:
+    def create_prompts(
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
         """Creates prompt from train and test datasets
 
-        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set 
-        :rtype: Tuple[List[str], List[str], List[str], List[List[str]]]
-        """        
+        :return: training prompts, training demographics, testing prompts, test labels, and demographics for test set
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame, List[str]]
+        """
         pass
