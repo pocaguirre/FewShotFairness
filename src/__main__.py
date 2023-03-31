@@ -82,6 +82,7 @@ def build_demonstration(
 
     if demonstration_name == "zeroshot":
         shots = 0
+        demonstration_params["shots"] = 0
     else:
         shots = demonstration_params["shots"]
 
@@ -159,9 +160,11 @@ def run_dataset(
     overall_demographics: List[str],
     dataset: str,
     demonstration: str,
+    demonstration_params: Dict[str, Any],
     models: List[str],
     output_folder: str,
 ):
+    results = []
 
     for model_name in models:
 
@@ -204,7 +207,7 @@ def run_dataset(
             f"Calculating metrics for {model_name} on {dataset} with {demonstration}"
         )
 
-        result = metrics(
+        performance = metrics(
             responses,
             test_df["labels"].tolist(),
             dataset,
@@ -212,21 +215,35 @@ def run_dataset(
             overall_demographics,
         )
 
-        gaps = result["max_gaps"]
+        result = [model_name, demonstration_params["shots"], demonstration, performance['total_score']]
 
-        group_results = result["score"]
+        group_results = performance["score"]
 
-        logging.info(f"For {model_name} on {dataset}")
-        logging.info(f"F1 Overall: {result['total_score']}")
-        for result in group_results:
-            logging.info(f"F1 {result}: {group_results[result]}")
+        gaps = performance['max_gaps']
+
+        for group_result in group_results:
+            result.append({group_result : group_results[group_result]})
+        
+        gaps = sorted(gaps, key=lambda x: x[3])
+
+        result.append(gaps[0][3])
+        
         for class_name in gaps:
 
             gap = gaps[class_name]
 
-            logging.info(
-                f"Largest gap for {class_name} is between {gap[0]} and {gap[1]}: {gap[2]} ({gap[3]})"
-            )
+            result.append({class_name: list(gap)})
+        
+        results.append(result)
+
+    if not os.path.exists(os.path.join(output_folder, "results")):
+        os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
+
+    with open(os.path.join(output_folder, "results", f"results_{dataset}.csv"), "w") as csvfile:
+        csvwriter = csv.writer(csvfile)
+
+        for result in results:
+            csvwriter.writerow(result)
 
 
 def main(args):
@@ -285,6 +302,7 @@ def main(args):
                 overall_demographics,
                 dataset,
                 demonstration,
+                demonstrations[demonstration],
                 datasets[dataset]["models"],
                 output_folder,
             )
