@@ -4,7 +4,10 @@ import logging
 
 from typing import Iterable, List, Dict, Any
 
+import backoff
+
 import openai
+
 from tqdm import tqdm
 
 from .apimodel import APIModel
@@ -20,6 +23,7 @@ class ChatGPT(APIModel):
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
 
+    @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
     def get_response(self, prompt: str) -> Dict[str, Any]:
         messages = [
             {"role": "user", "content": prompt},

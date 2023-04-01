@@ -4,7 +4,10 @@ import logging
 
 from typing import Iterable, List, Dict, Any
 
+import backoff 
+
 import openai
+
 from tqdm import tqdm
 
 from .apimodel import APIModel
@@ -23,8 +26,9 @@ class GPT(APIModel):
         super().__init__(model_name, temperature, max_tokens)
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
-        self.batch_size = 32
-
+        self.batch_size = 20
+    
+    @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
     def get_response(self, prompt: Iterable[str]) -> Dict[str, Any]:
         """Overloaded get_response to deal with batching
 
