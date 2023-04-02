@@ -23,7 +23,7 @@ class ChatGPT(APIModel):
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
+    @backoff.on_exception(backoff.expo, (openai.error.RateLimitError, openai.error.APIError, openai.error.Timeout, openai.error.ServiceUnavailableError))
     def get_response(self, prompt: str) -> Dict[str, Any]:
         messages = [
             {"role": "user", "content": prompt},
@@ -57,8 +57,9 @@ class ChatGPT(APIModel):
                 for line in response["choices"]:
                     line = self.format_response(line)
                     responses.append(line)
-            except:
-                response.append("")
+            except Exception as e:
+                print(e)
+                responses.append("")
                 print(f"Failure of {example}")
 
         return responses
