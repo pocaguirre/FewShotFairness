@@ -138,7 +138,7 @@ def metrics(
             gaps.append([group1, group2, gap, one_minus_gap])
 
     # get the maximum TPR gap per class
-    max_gaps = {}
+    max_gaps = dict()
     for i, label in enumerate(labels_set):
         gaps = sorted(gaps, key=lambda x: x[2][i], reverse=True)
 

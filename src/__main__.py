@@ -224,9 +224,9 @@ def run_dataset(
         for group_result in group_results:
             result.append({group_result : group_results[group_result]})
         
-        gaps = sorted(gaps, key=lambda x: x[3])
+        gaps = dict(sorted(gaps.items(), key=lambda item: item[1][3]))
 
-        result.append(gaps[0][3])
+        result.append(list(gaps.values())[0][3])
         
         for class_name in gaps:
 
