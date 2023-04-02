@@ -20,19 +20,21 @@ class HF(APIModel):
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     def get_response(self, prompt: str) -> Dict[str, Any]:
-        payload = json.dumps(
-            {
-                "inputs": prompt,
-                "parameters": {
-                    "temperature": self.temperature,
-                    "max_new_tokens": self.max_tokens,
-                },
-            }
-        )
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "temperature": self.temperature,
+                "max_new_tokens": self.max_tokens,
+            },
+        }
 
         response = requests.post(self.model_name, headers=self.headers, json=payload)
 
-        return json.loads(response.content.decode("utf-8"))
+        print(response)
+
+        print(response.content)
+
+        return response.json()
 
     def format_response(self, response: Dict[str, Any]) -> str:
         text = response["generated_text"].replace("\n", " ").strip()
@@ -46,12 +48,8 @@ class HF(APIModel):
 
             # try to get response
             # catch exceptions that happen
-            try:
-                response = self.get_response(example)
-                formatted_response = self.format_response(response)
-                responses.append(formatted_response)
-            except:
-                responses.append("")
-                print(f"Failure of {example}")
+            response = self.get_response(example)
+            formatted_response = self.format_response(response)
+            responses.append(formatted_response)
 
         return responses

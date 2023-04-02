@@ -111,7 +111,7 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
         "gpt3": GPT("text-davinci-003", **model_params),
         "chatgpt": ChatGPT("gpt-3.5-turbo", **model_params),
         "flan-ul2": HF(
-            "https://api-inference.huggingface.co/models/google/flan-t5-large",
+            "https://api-inference.huggingface.co/models/google/flan-ul2",
             **model_params,
         ),
     }
