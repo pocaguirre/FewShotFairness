@@ -60,7 +60,7 @@ class StratifiedSampler(Demonstration):
 
         for row in tqdm(test_df.itertuples()):
             train_dems = self.stratified_sample_df(
-                train_df, "demographics", self.shots, len(set_of_overall_demographics)
+                train_df, "filtered_demographics", self.shots, len(set_of_overall_demographics)
             )
 
             train_dems = train_dems["prompts"].tolist()[: self.shots]

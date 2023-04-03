@@ -30,7 +30,7 @@ class WithinDemographic(Demonstration):
             )
 
             filtered_df = train_df[
-                train_df.demographics.str.contains("|".join(row_demographics))
+                train_df.demographics.astype(str).str.contains("|".join(row_demographics))
             ]
 
             train_dems = filtered_df["prompts"].sample(n=self.shots).tolist()

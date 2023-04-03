@@ -12,12 +12,12 @@ from src.demonstrations.random import RandomSampler
 @pytest.fixture
 def test_data():
     train_data = ["train" + str(x) for x in range(0, 32)]
-    train_demographics = ["a"] * 32
+    train_demographics = [["a"]] * 32
 
     train_df = pd.DataFrame({"prompts": train_data, "demographics": train_demographics})
 
     test_data = ["test" + str(x) for x in range(0, 4)]
-    test_demographics = ["test" + str(x) for x in range(0, 4)]
+    test_demographics = [["test" + str(x)] for x in range(0, 4)]
     test_labels = ["test" + str(x) for x in range(0, 4)]
 
     test_df = pd.DataFrame(
