@@ -6,10 +6,10 @@ import pandas as pd
 
 from tqdm import tqdm
 
-from .demonstration import Demonstration
+from .demographicdemonstration import DemographicDemonstration
 
 
-class StratifiedSampler(Demonstration):
+class StratifiedSampler(DemographicDemonstration):
     def __init__(self, shots: int = 16) -> None:
         super().__init__(shots)
 
@@ -21,20 +21,6 @@ class StratifiedSampler(Demonstration):
         )
         df_.index = df_.index.droplevel(0)
         return df_
-
-    def filter_demographics(
-        self, demographics: List[str], overall_demographics: Set[str]
-    ) -> str:
-
-        set_of_demographics = set(demographics)
-
-        intersection = set_of_demographics.intersection(overall_demographics)
-
-        if len(intersection) == 0:
-            return ""
-
-        else:
-            return list(intersection)[0]
 
     def create_demonstrations(
         self,
