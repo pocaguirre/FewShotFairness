@@ -14,7 +14,16 @@ class HateXplainRace(HateXplain):
         """
         super().__init__(path)
 
-        self.demographics = ["Men", "Women"]
+        self.demographics = [
+            "African",
+            "Arab",
+            "Asian",
+            "Hispanic",
+            "Caucasian",
+            "Indian",
+            "Indigenous",
+        ]
+
 
     def create_prompts(
         self,

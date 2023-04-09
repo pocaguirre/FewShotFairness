@@ -117,22 +117,22 @@ class HateXplain(Dataset):
 
             item_demographics = [x["target"] for x in item["annotators"]]
 
-            item_demographics = list(
-                set([element for sublist in item_demographics for element in sublist])
-            )
+            item_demographics = [element for sublist in item_demographics for element in sublist]
 
             # get majority label
             label = self.get_majority(labels)
 
+            demographic = self.get_majority(item_demographics)
+
             # if there is no majority label we remove it
-            if label is not None:
+            if label is not None and demographic is not None:
                 sentence = " ".join(item["post_tokens"])
 
                 prompt = self.build_prompt(sentence, label=label)
 
                 train_prompts.append(prompt)
 
-                train_demographics.append(item_demographics)
+                train_demographics.append([demographic])
 
         test_prompts = []
 
@@ -147,13 +147,13 @@ class HateXplain(Dataset):
             item_demographics = [x["target"] for x in item["annotators"]]
 
             # get all the demographics associated with the item
-            item_demographics = list(
-                set([element for sublist in item_demographics for element in sublist])
-            )
+            item_demographics = [element for sublist in item_demographics for element in sublist]
+
+            demographic = self.get_majority(item_demographics)
 
             label = self.get_majority(labels)
 
-            if label is not None:
+            if label is not None and demographic is not None:
                 sentence = " ".join(item["post_tokens"])
 
                 prompt = self.build_prompt(sentence, "")
@@ -162,7 +162,7 @@ class HateXplain(Dataset):
 
                 test_labels.append(label)
 
-                test_demographics.append(item_demographics)
+                test_demographics.append([demographic])
 
         train_df = pd.DataFrame(
             {"prompts": train_prompts, "demographics": train_demographics}
