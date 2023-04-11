@@ -14,7 +14,7 @@ class HateXplainGender(HateXplain):
         """
         super().__init__(path)
 
-        self.demographics = ["Men", "Women"]
+        self.demographics = self.gender_demographics
 
     def create_prompts(
         self,

@@ -63,6 +63,18 @@ class HateXplain(Dataset):
                     annotator["label"] = "no"
                 else:
                     annotator["label"] = "yes"
+            
+        self.race_demographics = [
+            "African",
+            "Arab",
+            "Asian",
+            "Hispanic",
+            "Caucasian",
+            "Indian",
+            "Indigenous",
+        ]
+
+        self.gender_demographics =  ["Men", "Women"]
 
     def build_prompt(self, text: str, label: str) -> str:
         return (
@@ -98,6 +110,35 @@ class HateXplain(Dataset):
         # return the majority
         else:
             return rank[0][0]
+    
+    def choose_demographics(self, item_demographics: List[List[str]]) -> Optional[List[str]]:
+        item_demographics = [element for sublist in item_demographics for element in sublist]
+
+        race_demographics = [x for x in item_demographics if x in self.race_demographics]
+
+        gender_demographics = [x for x in item_demographics if x in self.gender_demographics]
+
+        race_majority = None
+        gender_majority = None 
+
+        if len(race_demographics) != 0:
+            race_majority = self.get_majority(race_demographics)
+        
+        if len(gender_demographics) != 0:
+            gender_majority = self.get_majority(gender_demographics)
+
+        demographic = []
+
+        if race_majority is not None:
+            demographic.append(race_majority)
+        if gender_majority is not None:
+            demographic.append(gender_majority)
+        
+        if len(demographic) == 0:
+            demographic = None
+        
+        return demographic
+
 
     def create_prompts(
         self,
@@ -117,12 +158,10 @@ class HateXplain(Dataset):
 
             item_demographics = [x["target"] for x in item["annotators"]]
 
-            item_demographics = [element for sublist in item_demographics for element in sublist]
+            demographic = self.choose_demographics(item_demographics)
 
             # get majority label
             label = self.get_majority(labels)
-
-            demographic = self.get_majority(item_demographics)
 
             # if there is no majority label we remove it
             if label is not None and demographic is not None:
@@ -132,7 +171,7 @@ class HateXplain(Dataset):
 
                 train_prompts.append(prompt)
 
-                train_demographics.append([demographic])
+                train_demographics.append(demographic)
 
         test_prompts = []
 
@@ -146,10 +185,7 @@ class HateXplain(Dataset):
 
             item_demographics = [x["target"] for x in item["annotators"]]
 
-            # get all the demographics associated with the item
-            item_demographics = [element for sublist in item_demographics for element in sublist]
-
-            demographic = self.get_majority(item_demographics)
+            demographic = self.choose_demographics(item_demographics)
 
             label = self.get_majority(labels)
 
@@ -162,7 +198,7 @@ class HateXplain(Dataset):
 
                 test_labels.append(label)
 
-                test_demographics.append([demographic])
+                test_demographics.append(demographic)
 
         train_df = pd.DataFrame(
             {"prompts": train_prompts, "demographics": train_demographics}
