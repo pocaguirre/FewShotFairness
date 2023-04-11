@@ -30,10 +30,6 @@ class HF(APIModel):
 
         response = requests.post(self.model_name, headers=self.headers, json=payload)
 
-        print(response)
-
-        print(response.content)
-
         return response.json()
 
     def format_response(self, response: Dict[str, Any]) -> str:
@@ -48,7 +44,7 @@ class HF(APIModel):
 
             # try to get response
             # catch exceptions that happen
-            response = self.get_response(example)
+            response = self.get_response(example)[0]
             formatted_response = self.format_response(response)
             responses.append(formatted_response)
 
