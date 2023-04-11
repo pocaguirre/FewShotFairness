@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.similaritydemonstration import SimilarityDemonstration
+from src.demonstrations import SimilarityDemonstration
 
 
 @pytest.fixture

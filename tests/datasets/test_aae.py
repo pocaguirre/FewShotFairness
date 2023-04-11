@@ -4,7 +4,7 @@ sys.path.append("../../src/")
 
 import pytest
 
-from src.datasets.twitteraae import TwitterAAE
+from src.datasets import TwitterAAE
 
 
 def test_good_path():

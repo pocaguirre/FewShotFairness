@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.diversitydemonstration import DiversityDemonstration
+from src.demonstrations import DiversityDemonstration
 
 
 @pytest.fixture

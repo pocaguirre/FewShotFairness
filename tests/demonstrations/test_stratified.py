@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.stratified import StratifiedSampler
+from src.demonstrations import StratifiedSampler
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ import logging
 
 import os
 
-import tomllib
+import tomli
 
 from typing import List, Dict, Any, Tuple
 
@@ -15,20 +15,11 @@ import random
 import numpy as np
 import pandas as pd
 
-from .datasets.biasinbios import BiasInBios
-from .datasets.twitteraae import TwitterAAE
-from .datasets.hateexplaingender import HateXplainGender
-from .datasets.hateexplainrace import HateXplainRace
+from .datasets import *
 
-from .models.gpt import GPT
-from .models.chatgpt import ChatGPT
-from .models.hf import HF
-from .models.apimodel import APIModel
+from .models import *
 
-from .demonstrations.random import RandomSampler
-from .demonstrations.excludingdemo import ExcludingDemographic
-from .demonstrations.withindemo import WithinDemographic
-from .demonstrations.stratified import StratifiedSampler
+from .demonstrations import *
 
 from .utils import metrics
 
@@ -71,11 +62,13 @@ def build_demonstration(
     """
 
     demonstrations = {
-        "excluding" : ExcludingDemographic,
+        "excluding": ExcludingDemographic,
         "zeroshot": RandomSampler,
-        "random" : RandomSampler,
+        "random": RandomSampler,
         "stratified": StratifiedSampler,
-        "within": WithinDemographic
+        "within": WithinDemographic,
+        "similarity": SimilarityDemonstration,
+        "diversity": DiversityDemonstration
     }
 
     shots = None
@@ -215,35 +208,42 @@ def run_dataset(
             overall_demographics,
         )
 
-        result = [model_name, demonstration_params["shots"], demonstration, performance['total_score']]
+        result = [
+            model_name,
+            demonstration_params["shots"],
+            demonstration,
+            performance["total_score"],
+        ]
 
         group_results = performance["score"]
 
-        gaps = performance['max_gaps']
+        gaps = performance["max_gaps"]
 
         for group_result in group_results:
-            result.append({group_result : group_results[group_result]})
-        
+            result.append({group_result: group_results[group_result]})
+
         gaps = dict(sorted(gaps.items(), key=lambda item: item[1][3]))
 
         result.append(list(gaps.values())[0][3])
-        
+
         for class_name in gaps:
 
             gap = gaps[class_name]
 
             result.append({class_name: list(gap)})
-        
+
         results.append(result)
 
     if not os.path.exists(os.path.join(output_folder, "results")):
         os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
 
-    with open(os.path.join(output_folder, "results", f"results_{dataset}.csv"), "w") as csvfile:
+    with open(
+        os.path.join(output_folder, "results", f"results_{dataset}.csv"), "w"
+    ) as csvfile:
         csvwriter = csv.writer(csvfile)
 
-        for result in results:
-            csvwriter.writerow(result)
+        for prepared_result in results:
+            csvwriter.writerow(prepared_result)
 
 
 def main(args):
@@ -251,7 +251,7 @@ def main(args):
 
     # open config
     with open(configpath, "rb") as f:
-        data = tomllib.load(f)
+        data = tomli.load(f)
 
     randomseed = data["general"]["seed"]
 
@@ -313,6 +313,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--config",
+        required=True
     )
 
     args = parser.parse_args()

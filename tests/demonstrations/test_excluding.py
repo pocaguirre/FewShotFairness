@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.excludingdemo import ExcludingDemographic
+from src.demonstrations import ExcludingDemographic
 
 
 @pytest.fixture

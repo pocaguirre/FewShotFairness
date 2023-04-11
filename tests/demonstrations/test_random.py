@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.random import RandomSampler
+from src.demonstrations import RandomSampler
 
 
 @pytest.fixture

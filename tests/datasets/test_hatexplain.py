@@ -4,8 +4,8 @@ sys.path.append("../../src/")
 
 import pytest
 
-from src.datasets.hateexplaingender import HateXplainGender
-from src.datasets.hateexplainrace import HateXplainRace
+from src.datasets import HateXplainGender
+from src.datasets import HateXplainRace
 
 
 def test_good_path_gender():

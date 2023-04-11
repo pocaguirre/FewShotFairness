@@ -6,7 +6,7 @@ import pytest
 
 import pandas as pd
 
-from src.demonstrations.withindemo import WithinDemographic
+from src.demonstrations import WithinDemographic
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ sys.path.append("../../src/")
 
 import pytest
 
-from src.datasets.biasinbios import BiasInBios
+from src.datasets import BiasInBios
 
 
 def test_good_path():
