@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ class SimilarityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         super().__init__(shots)
 
-    def create_demonstrations(self, train_df: pd.DataFrame, test_df: pd.DataFrame, overall_demographics: List[str]) -> List[str]:
+    def create_demonstrations(self, train_df: pd.DataFrame, test_df: pd.DataFrame, overall_demographics: List[str]) -> Tuple[List[str], pd.DataFrame]:
         self.embed(train_df, test_df)
 
         vector_dim = self.train_vectors.shape[1]
@@ -35,7 +35,7 @@ class SimilarityDemonstration(SemanticDemonstration):
 
             demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
         
-        return demonstrations
+        return demonstrations, test_df
 
 
 

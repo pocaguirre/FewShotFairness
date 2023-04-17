@@ -1,6 +1,6 @@
 import random
 
-from typing import List, Iterable
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ class RandomSampler(Demonstration):
         train_df: pd.DataFrame,
         test_df: pd.DataFrame,
         overall_demographics: List[str],
-    ) -> List[str]:
+    ) -> Tuple[List[str], pd.DataFrame]:
         """Create random k-shot from train set and test set
 
         :param train_df: train data
@@ -40,4 +40,4 @@ class RandomSampler(Demonstration):
             else:
                 demonstrations.append(row.prompts)
 
-        return demonstrations
+        return demonstrations, test_df

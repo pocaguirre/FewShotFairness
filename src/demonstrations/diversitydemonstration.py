@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ class DiversityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         super().__init__(shots)
 
-    def create_demonstrations(self, train_df: pd.DataFrame, test_df: pd.DataFrame, overall_demographics: List[str]) -> List[str]:
+    def create_demonstrations(self, train_df: pd.DataFrame, test_df: pd.DataFrame, overall_demographics: List[str]) -> Tuple[List[str], pd.DataFrame]:
         self.embed(train_df, test_df)
 
         verbose = True
@@ -40,7 +40,7 @@ class DiversityDemonstration(SemanticDemonstration):
 
             demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
         
-        return demonstrations
+        return demonstrations, test_df
 
 
 

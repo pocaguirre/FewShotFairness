@@ -16,6 +16,8 @@ class SemanticDemonstration(Demonstration):
         self.train_vectors = None
 
         self.test_vectors = None
+
+        self.type = "semantic"
     
     def embed(self, train_df: pd.DataFrame, test_df: pd.DataFrame):
 
