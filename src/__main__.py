@@ -43,7 +43,7 @@ def build_demonstration(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
     overall_demographics: List[str],
-) -> List[str]:
+) -> Tuple[List[str], pd.DataFrame, str]:
     """Build demonstrations based on parameters
 
     :param demonstration_name: name of demonstration
@@ -86,7 +86,9 @@ def build_demonstration(
 
     sampler = demonstration(shots=shots)
 
-    return sampler.create_demonstrations(train_df, test_df, overall_demographics)
+    prompts, filtered_test_df = sampler.create_demonstrations(train_df, test_df, overall_demographics)
+
+    return prompts, filtered_test_df, sampler.type
 
 
 def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
@@ -107,6 +109,10 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
             "https://api-inference.huggingface.co/models/google/flan-ul2",
             **model_params,
         ),
+        "ul2" : HF(
+            "https://api-inference.huggingface.co/models/google/ul2",
+            **model_params,
+        )
     }
 
     model = None
@@ -153,6 +159,7 @@ def run_dataset(
     overall_demographics: List[str],
     dataset: str,
     demonstration: str,
+    demonstration_type: str, 
     demonstration_params: Dict[str, Any],
     models: List[str],
     output_folder: str,
@@ -211,6 +218,7 @@ def run_dataset(
         result = [
             model_name,
             demonstration_params["shots"],
+            demonstration_type,
             demonstration,
             performance["total_score"],
         ]
@@ -238,7 +246,7 @@ def run_dataset(
         os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
 
     with open(
-        os.path.join(output_folder, "results", f"results_{dataset}.csv"), "w"
+        os.path.join(output_folder, "results", f"results_{dataset}_{demonstration}.csv"), "w"
     ) as csvfile:
         csvwriter = csv.writer(csvfile)
 
@@ -285,7 +293,7 @@ def main(args):
             )
 
             # create prompts from dataset
-            prompts = build_demonstration(
+            prompts, filtered_test_df, demonstration_type = build_demonstration(
                 demonstration,
                 demonstrations[demonstration],
                 train_df,
@@ -295,13 +303,15 @@ def main(args):
 
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")
 
-            # run dataset with all models provided
+            print(len(prompts), len(filtered_test_df))
+            #run dataset with all models provided
             run_dataset(
                 prompts,
-                test_df,
+                filtered_test_df,
                 overall_demographics,
                 dataset,
                 demonstration,
+                demonstration_type,
                 demonstrations[demonstration],
                 datasets[dataset]["models"],
                 output_folder,
