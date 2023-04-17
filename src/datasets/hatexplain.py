@@ -69,9 +69,7 @@ class HateXplain(Dataset):
             "Arab",
             "Asian",
             "Hispanic",
-            "Caucasian",
-            "Indian",
-            "Indigenous",
+            "Caucasian"
         ]
 
         self.gender_demographics =  ["Men", "Women"]
