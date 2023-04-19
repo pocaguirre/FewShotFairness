@@ -1,5 +1,7 @@
 import os
 
+import torch
+
 from typing import Iterable, List, Dict, Any
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -14,17 +16,20 @@ class HFOffline(APIModel):
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(self.device)
 
         self.batch_size = 20
 
+
     def get_response(self, prompts: Iterable[str]) -> Dict[str, Any]:
 
-        tokenized_input = self.tokenizer(prompts)
+        tokenized_input = self.tokenizer(prompts).to(self.device)
 
         outputs = self.model.generate(tokenized_input, temperature = self.temperature, max_new_tokens = self.max_tokens)
         
-        return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        return self.tokenizer.batch_decode(outputs.cpu(), skip_special_tokens=True)
 
     def format_response(self, response: str) -> str:
         text = response.replace("\n", " ").strip()
