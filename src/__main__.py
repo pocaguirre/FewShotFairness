@@ -103,7 +103,7 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
     :rtype: APIModel
     """
     models = {
-        "gpt3": GPT("text-davinci-003", **model_params),
+        "gpt3": GPT("text-davinci-002", **model_params),
         "chatgpt": ChatGPT("gpt-3.5-turbo", **model_params),
         "flan-ul2": HF(
             "https://api-inference.huggingface.co/models/google/flan-ul2",
@@ -112,7 +112,8 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
         "ul2" : HF(
             "https://api-inference.huggingface.co/models/google/ul2",
             **model_params,
-        )
+        ),
+        "offline-ul2" : HFOffline("google/ul2", **model_params,)
     }
 
     model = None
