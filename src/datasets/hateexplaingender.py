@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 import pandas as pd
 
@@ -25,4 +25,18 @@ class HateXplainGender(HateXplain):
         :rtype: Tuple[pd.DataFrame, pd.DataFrame]:
         """
         train_df, test_df = super().create_prompts()
-        return train_df, test_df, self.demographics
+
+        set_of_overall_demographics = set(self.demographics)
+
+        train_df["filtered_demographics"] = train_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+        test_df["filtered_demographics"] = test_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+
+        filtered_train_df = train_df[train_df.filtered_demographics != ""].copy().reset_index()
+
+        filtered_test_df = test_df[test_df.filtered_demographics != ""].copy().reset_index()
+
+        return filtered_train_df, filtered_test_df, self.demographics

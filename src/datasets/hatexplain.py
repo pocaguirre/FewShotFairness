@@ -4,7 +4,7 @@ import json
 
 import os
 
-from typing import Tuple, List, Optional, Any, Dict
+from typing import Tuple, List, Optional, Any, Dict, Set
 
 import pandas as pd
 
@@ -136,6 +136,20 @@ class HateXplain(Dataset):
             demographic = None
         
         return demographic
+    
+    def filter_demographics(
+        self, demographics: List[str], overall_demographics: Set[str]
+    ) -> str:
+
+        set_of_demographics = set(demographics)
+
+        intersection = set_of_demographics.intersection(overall_demographics)
+
+        if len(intersection) == 0:
+            return ""
+
+        else:
+            return list(intersection)[0]
 
 
     def create_prompts(

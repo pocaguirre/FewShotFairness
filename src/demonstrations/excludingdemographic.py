@@ -20,29 +20,18 @@ class ExcludingDemographic(DemographicDemonstration):
         
         set_of_overall_demographics = set(overall_demographics)
 
-        train_df["filtered_demographics"] = train_df["demographics"].apply(
-            lambda x: self.filter_demographics(x, set_of_overall_demographics)
-        )
-        test_df["filtered_demographics"] = test_df["demographics"].apply(
-            lambda x: self.filter_demographics(x, set_of_overall_demographics)
-        )
-
-        filtered_train_df = train_df[train_df.filtered_demographics != ""].copy()
-
-        filtered_test_df = test_df[test_df.filtered_demographics != ""].copy()
-
         demonstrations = []
 
         pre_computed_exclusions = dict()
 
         for demographic in set_of_overall_demographics:
-            pre_computed_exclusions[demographic] = filtered_train_df[~(filtered_train_df.filtered_demographics == demographic)]
+            pre_computed_exclusions[demographic] = train_df[~(train_df.filtered_demographics == demographic)]
         
-        for row in tqdm(filtered_test_df.itertuples()):
+        for row in tqdm(test_df.itertuples()):
             filtered_df = pre_computed_exclusions[row.filtered_demographics]
 
             train_dems = filtered_df["prompts"].sample(n=self.shots).tolist()
 
             demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
 
-        return demonstrations, filtered_test_df
+        return demonstrations, test_df

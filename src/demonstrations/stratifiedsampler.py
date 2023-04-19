@@ -31,26 +31,15 @@ class StratifiedSampler(DemographicDemonstration):
 
         set_of_overall_demographics = set(overall_demographics)
 
-        train_df["filtered_demographics"] = train_df["demographics"].apply(
-            lambda x: self.filter_demographics(x, set_of_overall_demographics)
-        )
-        test_df["filtered_demographics"] = test_df["demographics"].apply(
-            lambda x: self.filter_demographics(x, set_of_overall_demographics)
-        )
-
-        filtered_train_df = train_df[train_df.filtered_demographics != ""].copy()
-
-        filtered_test_df = test_df[test_df.filtered_demographics != ""].copy()
-
         demonstrations = []
 
-        for row in tqdm(filtered_test_df.itertuples()):
+        for row in tqdm(test_df.itertuples()):
             train_dems = self.stratified_sample_df(
-                filtered_train_df, "filtered_demographics", self.shots, len(set_of_overall_demographics)
+                train_df, "filtered_demographics", self.shots, len(set_of_overall_demographics)
             )
 
             train_dems = train_dems["prompts"].tolist()[: self.shots]
 
             demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
 
-        return demonstrations, filtered_test_df
+        return demonstrations, test_df
