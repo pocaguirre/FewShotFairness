@@ -20,14 +20,16 @@ class HFOffline(APIModel):
 
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(self.device)
 
-        self.batch_size = 20
+        self.model.eval()
+
+        self.batch_size = 4
 
 
     def get_response(self, prompts: Iterable[str]) -> Dict[str, Any]:
 
-        tokenized_input = self.tokenizer(prompts).to(self.device)
+        tokenized_input = self.tokenizer(prompts, return_tensors="pt", padding=True).to(self.device)
 
-        outputs = self.model.generate(tokenized_input, temperature = self.temperature, max_new_tokens = self.max_tokens)
+        outputs = self.model.generate(**tokenized_input, temperature = self.temperature, max_new_tokens = self.max_tokens)
         
         return self.tokenizer.batch_decode(outputs.cpu(), skip_special_tokens=True)
 
@@ -38,15 +40,17 @@ class HFOffline(APIModel):
     def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
         responses = []
 
-        for i in tqdm(range(0, len(examples), self.batch_size), ncols=0):
+        with torch.inference_mode():
 
-            prompt_batch = examples[i : min(i + self.batch_size, len(examples))]
+            for i in tqdm(range(0, len(examples), self.batch_size), ncols=0):
 
-            response = self.get_response(prompt_batch)
+                prompt_batch = examples[i : min(i + self.batch_size, len(examples))]
 
-            response = [self.format_response(x) for x in response]
+                response = self.get_response(prompt_batch)
 
-            responses.extend(response)
+                response = [self.format_response(x) for x in response]
+
+                responses.extend(response)
 
         return responses
 
