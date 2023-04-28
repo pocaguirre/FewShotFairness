@@ -11,6 +11,12 @@ from .demonstration import Demonstration
 
 class RandomSampler(Demonstration):
     def __init__(self, shots=16) -> None:
+        """Random k-shot demographic inititalization
+
+        :param shots: shots in demonstration, defaults to 16
+        :type shots: int, optional
+        """
+
         super().__init__(shots)
 
     def create_demonstrations(
@@ -32,6 +38,7 @@ class RandomSampler(Demonstration):
         """
         demonstrations = []
 
+        # randomly sample the train data frame for each test
         for row in tqdm(test_df.itertuples()):
             train_dems = train_df["prompts"].sample(n=self.shots).tolist()
 
