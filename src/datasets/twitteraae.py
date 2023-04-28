@@ -71,7 +71,7 @@ class TwitterAAE(Dataset):
         :param input_file: path to input file
         :type input_file: str
         :return: training and testing example for split
-        :rtype: str
+        :rtype: Tuple[List[str], List[str]]
         """
 
         with open(input_file, "r", encoding="latin-1") as f:
@@ -93,16 +93,16 @@ class TwitterAAE(Dataset):
     ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
         """Create prompts for HatExplain
 
-        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set
-        :rtype: Tuple[List[str], List[List[str]], List[str], List[str], List[List[str]], List[str]]
+        :return:  returns the train and test prompts, train demographics the labels for the test set and the demographic groups of the test set
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame, List[str]]
         """
+
         train_prompts = []
 
         train_demographics = []
 
         # create train prompts
         for item in self.datasets["train"]:
-
             # item 0 is text, item 1 is label
             prompt = self.build_prompt(item[0], item[1])
 
@@ -127,6 +127,7 @@ class TwitterAAE(Dataset):
             # item 2 is demographics
             test_demographics.append([item[2]])
 
+        # put into dataframes
         train_df = pd.DataFrame(
             {"prompts": train_prompts, "demographics": train_demographics}
         )

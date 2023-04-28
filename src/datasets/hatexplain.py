@@ -41,7 +41,6 @@ class HateXplain(Dataset):
         self.datasets["test"] = [data[x] for x in splits["test"]]
 
         for post in self.datasets["train"]:
-
             annotators = post["annotators"]
 
             for annotator in annotators:
@@ -53,7 +52,6 @@ class HateXplain(Dataset):
                     annotator["label"] = "yes"
 
         for post in self.datasets["test"]:
-
             annotators = post["annotators"]
 
             for annotator in annotators:
@@ -63,18 +61,21 @@ class HateXplain(Dataset):
                     annotator["label"] = "no"
                 else:
                     annotator["label"] = "yes"
-            
-        self.race_demographics = [
-            "African",
-            "Arab",
-            "Asian",
-            "Hispanic",
-            "Caucasian"
-        ]
 
-        self.gender_demographics =  ["Men", "Women"]
+        self.race_demographics = ["African", "Arab", "Asian", "Hispanic", "Caucasian"]
+
+        self.gender_demographics = ["Men", "Women"]
 
     def build_prompt(self, text: str, label: str) -> str:
+        """Build prompts for HateXplain
+
+        :param text: test example
+        :type text: str
+        :param label: label for text example
+        :type label: str
+        :return: build prompt for HateXplain
+        :rtype: str
+        """
         return (
             "Post: "
             + text
@@ -108,38 +109,67 @@ class HateXplain(Dataset):
         # return the majority
         else:
             return rank[0][0]
-    
-    def choose_demographics(self, item_demographics: List[List[str]]) -> Optional[List[str]]:
-        item_demographics = [element for sublist in item_demographics for element in sublist]
 
-        race_demographics = [x for x in item_demographics if x in self.race_demographics]
+    def choose_demographics(
+        self, item_demographics: List[List[str]]
+    ) -> Optional[List[str]]:
+        """Choose the majority demographics in both race and gender columns
 
-        gender_demographics = [x for x in item_demographics if x in self.gender_demographics]
+        :param item_demographics: list of demographics from annotators
+        :type item_demographics: List[List[str]]
+        :return: majority demographic in race and or gender or none if none is dominant
+        :rtype: Optional[List[str]]
+        """
+
+        # flatten demographics
+        item_demographics = [
+            element for sublist in item_demographics for element in sublist
+        ]
+
+        # split race and gender demographics
+        race_demographics = [
+            x for x in item_demographics if x in self.race_demographics
+        ]
+
+        gender_demographics = [
+            x for x in item_demographics if x in self.gender_demographics
+        ]
 
         race_majority = None
-        gender_majority = None 
+        gender_majority = None
 
+        # get majority in race and in gender
         if len(race_demographics) != 0:
             race_majority = self.get_majority(race_demographics)
-        
+
         if len(gender_demographics) != 0:
             gender_majority = self.get_majority(gender_demographics)
 
+        # if the majority is not none add it to overall demographics
         demographic = []
 
         if race_majority is not None:
             demographic.append(race_majority)
         if gender_majority is not None:
             demographic.append(gender_majority)
-        
+
         if len(demographic) == 0:
             demographic = None
-        
+
         return demographic
-    
+
     def filter_demographics(
         self, demographics: List[str], overall_demographics: Set[str]
     ) -> str:
+        """filter demographics that we are focusing on
+
+        :param demographics: demographics of that post
+        :type demographics: List[str]
+        :param overall_demographics: demographics to focus on
+        :type overall_demographics: Set[str]
+        :return: first item in intersection
+        :rtype: str
+        """
 
         set_of_demographics = set(demographics)
 
@@ -150,7 +180,6 @@ class HateXplain(Dataset):
 
         else:
             return list(intersection)[0]
-
 
     def create_prompts(
         self,

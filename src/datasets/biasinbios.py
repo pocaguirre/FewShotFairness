@@ -117,6 +117,7 @@ class BiasInBios(Dataset):
 
             test_demographics.append([item.g])
 
+        # format as dataframes
         train_df = pd.DataFrame(
             {"prompts": train_prompts, "demographics": train_demographics}
         )
