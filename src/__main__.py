@@ -68,7 +68,7 @@ def build_demonstration(
         "stratified": StratifiedSampler,
         "within": WithinDemographic,
         "similarity": SimilarityDemonstration,
-        "diversity": DiversityDemonstration
+        "diversity": DiversityDemonstration,
     }
 
     shots = None
@@ -86,7 +86,9 @@ def build_demonstration(
 
     sampler = demonstration(shots=shots)
 
-    prompts, filtered_test_df = sampler.create_demonstrations(train_df, test_df, overall_demographics)
+    prompts, filtered_test_df = sampler.create_demonstrations(
+        train_df, test_df, overall_demographics
+    )
 
     return prompts, filtered_test_df, sampler.type
 
@@ -109,11 +111,14 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
             "https://api-inference.huggingface.co/models/google/flan-ul2",
             **model_params,
         ),
-        "ul2" : HF(
+        "ul2": HF(
             "https://api-inference.huggingface.co/models/google/ul2",
             **model_params,
         ),
-        "offline-ul2" : HFOffline("google/ul2", **model_params,)
+        "offline-ul2": HFOffline(
+            "google/ul2",
+            **model_params,
+        ),
     }
 
     model = None
@@ -160,7 +165,7 @@ def run_dataset(
     overall_demographics: List[str],
     dataset: str,
     demonstration: str,
-    demonstration_type: str, 
+    demonstration_type: str,
     demonstration_params: Dict[str, Any],
     models: List[str],
     output_folder: str,
@@ -168,7 +173,6 @@ def run_dataset(
     results = []
 
     for model_name in models:
-
         logging.info(
             f"Starting to create {model_name} model for {dataset} with {demonstration}"
         )
@@ -236,7 +240,6 @@ def run_dataset(
         result.append(list(gaps.values())[0][3])
 
         for class_name in gaps:
-
             gap = gaps[class_name]
 
             result.append({class_name: list(gap)})
@@ -247,7 +250,10 @@ def run_dataset(
         os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
 
     with open(
-        os.path.join(output_folder, "results", f"results_{dataset}_{demonstration}.csv"), "w"
+        os.path.join(
+            output_folder, "results", f"results_{dataset}_{demonstration}.csv"
+        ),
+        "w",
     ) as csvfile:
         csvwriter = csv.writer(csvfile)
 
@@ -274,7 +280,6 @@ def main(args):
 
     # loop through all datasets provided in config
     for dataset in datasets:
-
         logging.info(f"Starting to build {dataset} dataset")
 
         # build one dataset to use for all models and all demonstration combinations
@@ -288,7 +293,6 @@ def main(args):
 
         # loop through all demonstrations
         for demonstration in demonstrations:
-
             logging.info(
                 f"Starting to create {demonstration} demonstration for {dataset} dataset"
             )
@@ -305,7 +309,7 @@ def main(args):
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")
 
             print(len(prompts), len(filtered_test_df))
-            #run dataset with all models provided
+            # run dataset with all models provided
             run_dataset(
                 prompts,
                 filtered_test_df,
@@ -322,10 +326,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--config",
-        required=True
-    )
+    parser.add_argument("--config", required=True)
 
     args = parser.parse_args()
 

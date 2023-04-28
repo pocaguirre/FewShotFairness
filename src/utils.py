@@ -60,7 +60,6 @@ def metrics(
     dummy_preds = []
 
     for pred in preds_clean:
-
         # see if any of the labels are in the response
         for label in labels_set:
             if pred.find(label) != -1:
@@ -92,7 +91,6 @@ def metrics(
     )
 
     for dem in overall_demographics:
-
         # filter out items that do not have the specified demographic
         index = [i for i, item in enumerate(demographics_filtered) if dem in item]
 
