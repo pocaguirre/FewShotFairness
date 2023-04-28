@@ -22,7 +22,7 @@ class GPT(APIModel):
     """
 
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
-        """"GPT model initializer
+        """ "GPT model initializer
 
         :param model_name: name of model
         :type model_name: str
@@ -30,7 +30,7 @@ class GPT(APIModel):
         :type temperature: float, optional
         :param max_tokens: maximum number of tokens generated, defaults to 5
         :type max_tokens: int, optional
-        """       
+        """
         super().__init__(model_name, temperature, max_tokens)
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
