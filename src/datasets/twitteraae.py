@@ -48,6 +48,8 @@ class TwitterAAE(Dataset):
 
         self.demographics = ["aa", "wh"]
 
+        self.labels = ['sad', 'happy']
+
     def build_prompt(self, text: str, label: str) -> str:
         """Create prompt for twitter aae
 
@@ -101,6 +103,8 @@ class TwitterAAE(Dataset):
 
         train_demographics = []
 
+        train_labels = []
+
         # create train prompts
         for item in self.datasets["train"]:
             # item 0 is text, item 1 is label
@@ -109,6 +113,8 @@ class TwitterAAE(Dataset):
             train_prompts.append(prompt)
 
             train_demographics.append([item[2]])
+
+            train_labels.append(item[1])
 
         test_prompts = []
 
@@ -129,7 +135,11 @@ class TwitterAAE(Dataset):
 
         # put into dataframes
         train_df = pd.DataFrame(
-            {"prompts": train_prompts, "demographics": train_demographics}
+            {
+                "prompts": train_prompts,
+                "demographics": train_demographics,
+                "labels": train_labels,
+            }
         )
 
         test_df = pd.DataFrame(

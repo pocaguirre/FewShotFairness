@@ -66,6 +66,8 @@ class HateXplain(Dataset):
 
         self.gender_demographics = ["Men", "Women"]
 
+        self.labels = ['yes', 'no']
+
     def build_prompt(self, text: str, label: str) -> str:
         """Build prompts for HateXplain
 
@@ -193,6 +195,8 @@ class HateXplain(Dataset):
 
         train_demographics = []
 
+        train_labels = []
+
         # create train prompts
         for item in self.datasets["train"]:
             labels = [x["label"] for x in item["annotators"]]
@@ -213,6 +217,8 @@ class HateXplain(Dataset):
                 train_prompts.append(prompt)
 
                 train_demographics.append(demographic)
+
+                train_labels.append(label)
 
         test_prompts = []
 
@@ -242,7 +248,11 @@ class HateXplain(Dataset):
                 test_demographics.append(demographic)
 
         train_df = pd.DataFrame(
-            {"prompts": train_prompts, "demographics": train_demographics}
+            {
+                "prompts": train_prompts,
+                "demographics": train_demographics,
+                "labels": train_labels,
+            }
         )
 
         test_df = pd.DataFrame(
