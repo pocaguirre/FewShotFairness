@@ -32,7 +32,6 @@ def test_data():
 
 
 def test_zeroshot_sampler(test_data):
-
     train_df, test_df = test_data
 
     rs = RandomSampler(shots=0)
