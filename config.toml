@@ -1,38 +1,103 @@
 [general]
 seed = 2020
+output_folder = "output/responses/10shotgpt3davinci/"
 
 
 [datasets]
-  [datasets.bias]
-    path = "data/biasbios"
-    [datasets.bias.demonstrations]
-      [datasets.bias.demonstrations.random]
-      shots = 5
-      [datasets.bias.demonstrations.zeroshot]
-    [datasets.bias.models]
-      [datasets.bias.models.gpt3]
-      temperature = 1
-      [datasets.bias.models.chatgpt]
-      temperature = 1
-  [datasets.aae]
-    path = "data/moji/twitteraae_sentiment_race"
-    [datasets.aae.demonstrations]
-      [datasets.aae.demonstrations.random]
-      shots = 5
-      [datasets.aae.demonstrations.zeroshot]
-    [datasets.aae.models]
-      [datasets.aae.models.gpt3]
-      temperature = 1
-      [datasets.aae.models.chatgpt]
-      temperature = 1
-  [datasets.hatexplain]
+  # [datasets.bias]
+  #   path = "data/biasbios"
+  #   [datasets.bias.demonstrations]
+  #     [datasets.bias.demonstrations.random]
+  #     shots = 16
+  #     [datasets.bias.demonstrations.zeroshot]
+  #     [datasets.bias.demonstrations.excluding]
+  #     shots = 16
+  #     [datasets.bias.demonstrations.stratified]
+  #     shots = 16
+  #     [datasets.bias.demonstrations.within]
+  #     shots = 16
+  #   [datasets.bias.models]
+  #     [datasets.bias.models.gpt3]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.bias.models.chatgpt]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.bias.models.flan-ul2]
+  #       temperature = 1
+  #       max_tokens = 5
+      
+  # [datasets.aae]
+  #   path = "data/moji/twitteraae_sentiment_race"
+  #   [datasets.aae.demonstrations]
+  #     [datasets.aae.demonstrations.random]
+  #     shots = 16
+  #     [datasets.aae.demonstrations.zeroshot]
+  #     [datasets.aae.demonstrations.excluding]
+  #     shots = 16
+  #     [datasets.aae.demonstrations.stratified]
+  #     shots = 16
+  #     [datasets.aae.demonstrations.within]
+  #     shots = 16
+  #   [datasets.aae.models]
+  #     [datasets.aae.models.gpt3]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.aae.models.chatgpt]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.aae.models.flan-ul2]
+  #       temperature = 1
+  #       max_tokens = 5
+  [datasets.hatexplain-race]
     path = "data/HateXplain"
-    [datasets.hatexplain.demonstrations]
-      [datasets.hatexplain.demonstrations.random]
-      shots = 5
-      [datasets.hatexplain.demonstrations.zeroshot]
-    [datasets.hatexplain.models]
-      [datasets.hatexplain.models.gpt3]
-      temperature = 1
-      [datasets.hatexplain.models.chatgpt]
-      temperature = 1
+    [datasets.hatexplain-race.demonstrations]
+      [datasets.hatexplain-race.demonstrations.random]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.similarity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.zeroshot]
+      [datasets.hatexplain-race.demonstrations.excluding]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.stratified]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.within]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.diversity]
+      shots = 10
+    [datasets.hatexplain-race.models]
+      [datasets.hatexplain-race.models.gpt3]
+        temperature = 1
+        max_tokens = 5
+      # [datasets.hatexplain-race.models.chatgpt]
+      #   temperature = 1
+      #   max_tokens = 5
+      # [datasets.hatexplain-race.models.ul2]
+      #   temperature = 1
+      #   max_tokens = 5
+      # [datasets.hatexplain-race.models.flan-ul2]
+      #   temperature = 1
+      #   max_tokens = 5
+      
+  # [datasets.hatexplain-gender]
+  #   path = "data/HateXplain"
+  #   [datasets.hatexplain-gender.demonstrations]
+  #     [datasets.hatexplain-gender.demonstrations.random]
+  #     shots = 16
+  #     [datasets.hatexplain-gender.demonstrations.zeroshot]
+  #     [datasets.hatexplain-gender.demonstrations.excluding]
+  #     shots = 16
+  #     [datasets.hatexplain-gender.demonstrations.stratified]
+  #     shots = 16
+  #     [datasets.hatexplain-gender.demonstrations.within]
+  #     shots = 16
+  #   [datasets.hatexplain-gender.models]
+  #     [datasets.hatexplain-gender.models.gpt3]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.hatexplain-gender.models.chatgpt]
+  #       temperature = 1
+  #       max_tokens = 5
+  #     [datasets.hatexplain-gender.models.flan-ul2]
+  #       temperature = 1
+  #       max_tokens = 5

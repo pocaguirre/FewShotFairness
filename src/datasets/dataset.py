@@ -7,6 +7,11 @@ class Dataset:
     """Base Class for datasets"""
 
     def __init__(self, path: str):
+        """Base Class initalizer
+
+        :param path: path to dataset
+        :type path: str
+        """
         self.path = path
 
     def build_prompt(self, text: str, label: str) -> str:

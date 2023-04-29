@@ -10,19 +10,27 @@ import openai
 
 from tqdm import tqdm
 
-from .apimodel import APIModel
+from .apimodel import apimodel
 
 logger = logging.getLogger(__name__ + ".models")
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
-class GPT(APIModel):
+class gpt(apimodel):
     """Code modified from
     https://github.com/isabelcachola/generative-prompting/blob/main/genprompt/models.py
     """
 
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
+        """ "GPT model initializer
 
+        :param model_name: name of model
+        :type model_name: str
+        :param temperature: temperature of model when generating, defaults to 1
+        :type temperature: float, optional
+        :param max_tokens: maximum number of tokens generated, defaults to 5
+        :type max_tokens: int, optional
+        """
         super().__init__(model_name, temperature, max_tokens)
 
         openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -55,10 +63,24 @@ class GPT(APIModel):
         return response
 
     def format_response(self, response: Dict[str, Any]) -> str:
+        """Clean up response from GPT API and return generated string
+
+        :param response: response from GPT API
+        :type response: Dict[str, Any]
+        :return: generated string
+        :rtype: str
+        """
         text = response["text"].replace("\n", " ").strip()
         return text
 
     def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
+        """Send all examples to GPT model API and get its responses
+
+        :param examples: list of prompts
+        :type examples: Iterable[str]
+        :return: list of cleaned responses
+        :rtype: List[str]
+        """
         lines_length = len(examples)
         logger.info(f"Num examples = {lines_length}")
         i = 0
@@ -66,7 +88,6 @@ class GPT(APIModel):
         responses = []
 
         for i in tqdm(range(0, lines_length, self.batch_size), ncols=0):
-
             # batch prompts together
             prompt_batch = examples[i : min(i + self.batch_size, lines_length)]
             try:
@@ -83,7 +104,6 @@ class GPT(APIModel):
 
             # catch any connection exceptions
             except:
-
                 # try each prompt individually
                 for i in range(len(prompt_batch)):
                     try:

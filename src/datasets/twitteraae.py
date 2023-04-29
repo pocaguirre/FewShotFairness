@@ -48,6 +48,8 @@ class TwitterAAE(Dataset):
 
         self.demographics = ["aa", "wh"]
 
+        self.labels = ['sad', 'happy']
+
     def build_prompt(self, text: str, label: str) -> str:
         """Create prompt for twitter aae
 
@@ -71,7 +73,7 @@ class TwitterAAE(Dataset):
         :param input_file: path to input file
         :type input_file: str
         :return: training and testing example for split
-        :rtype: str
+        :rtype: Tuple[List[str], List[str]]
         """
 
         with open(input_file, "r", encoding="latin-1") as f:
@@ -93,22 +95,26 @@ class TwitterAAE(Dataset):
     ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
         """Create prompts for HatExplain
 
-        :return: Tuple of training prompts, testing prompts, test labels, and demographics for test set
-        :rtype: Tuple[List[str], List[List[str]], List[str], List[str], List[List[str]], List[str]]
+        :return:  returns the train and test prompts, train demographics the labels for the test set and the demographic groups of the test set
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame, List[str]]
         """
+
         train_prompts = []
 
         train_demographics = []
 
+        train_labels = []
+
         # create train prompts
         for item in self.datasets["train"]:
-
             # item 0 is text, item 1 is label
             prompt = self.build_prompt(item[0], item[1])
 
             train_prompts.append(prompt)
 
             train_demographics.append([item[2]])
+
+            train_labels.append(item[1])
 
         test_prompts = []
 
@@ -127,8 +133,13 @@ class TwitterAAE(Dataset):
             # item 2 is demographics
             test_demographics.append([item[2]])
 
+        # put into dataframes
         train_df = pd.DataFrame(
-            {"prompts": train_prompts, "demographics": train_demographics}
+            {
+                "prompts": train_prompts,
+                "demographics": train_demographics,
+                "labels": train_labels,
+            }
         )
 
         test_df = pd.DataFrame(
@@ -139,4 +150,22 @@ class TwitterAAE(Dataset):
             }
         )
 
-        return train_df, test_df, self.demographics
+        set_of_overall_demographics = set(self.demographics)
+
+        train_df["filtered_demographics"] = train_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+        test_df["filtered_demographics"] = test_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+
+        # remove them
+        filtered_train_df = (
+            train_df[train_df.filtered_demographics != ""].copy().reset_index()
+        )
+
+        filtered_test_df = (
+            test_df[test_df.filtered_demographics != ""].copy().reset_index()
+        )
+
+        return filtered_train_df, filtered_test_df, self.demographics

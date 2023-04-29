@@ -48,7 +48,7 @@ class BiasInBios(Dataset):
         )
 
         # get the list of professions with above criteria
-        filtered_profession_set = (
+        self.labels = list(
             counting_set.loc[filtering_set[filtering_set == True].index]
             .reset_index()["p"]
             .unique()
@@ -56,7 +56,12 @@ class BiasInBios(Dataset):
 
         # filter the test set with professions list
         self.datasets["test"] = self.datasets["test"][
-            self.datasets["test"].p.isin(filtered_profession_set)
+            self.datasets["test"].p.isin(self.labels)
+        ]
+
+        # filter the train set with professions list
+        self.datasets["train"] = self.datasets["train"][
+            self.datasets["train"].p.isin(self.labels)
         ]
 
         # sample 500 of each profession from each gender
@@ -79,7 +84,15 @@ class BiasInBios(Dataset):
         :return: prompt using input text and label
         :rtype: str
         """
-        return text + " \n " + "The occupation of this person is " + label
+
+        return (
+            text
+            + "\n "
+            + "Occupations: "
+            + ", ".join(self.labels)
+            + "\nThe occupation of this person is "
+            + label
+        )
 
     def create_prompts(
         self,
@@ -93,13 +106,17 @@ class BiasInBios(Dataset):
 
         train_demographics = []
 
+        train_labels = []
+
         # build train dataset
         for item in self.datasets["train"].itertuples():
-            prompt = self.build_prompt(item.text_without_gender, item.p)
+            prompt = self.build_prompt(item.hard_text, item.p)
 
             train_prompts.append(prompt)
 
             train_demographics.append([item.g])
+
+            train_labels.append(item.p)
 
         test_prompts = []
 
@@ -109,7 +126,7 @@ class BiasInBios(Dataset):
 
         # build test dataset
         for item in self.datasets["test"].itertuples():
-            prompt = self.build_prompt(item.text_without_gender, "")
+            prompt = self.build_prompt(item.hard_text, "")
 
             test_prompts.append(prompt)
 
@@ -117,8 +134,13 @@ class BiasInBios(Dataset):
 
             test_demographics.append([item.g])
 
+        # format as dataframes
         train_df = pd.DataFrame(
-            {"prompts": train_prompts, "demographics": train_demographics}
+            {
+                "prompts": train_prompts,
+                "demographics": train_demographics,
+                "labels": train_labels,
+            }
         )
 
         test_df = pd.DataFrame(
@@ -129,8 +151,26 @@ class BiasInBios(Dataset):
             }
         )
 
+        set_of_overall_demographics = set(self.demographics)
+
+        train_df["filtered_demographics"] = train_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+        test_df["filtered_demographics"] = test_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+
+        # remove them
+        filtered_train_df = (
+            train_df[train_df.filtered_demographics != ""].copy().reset_index()
+        )
+
+        filtered_test_df = (
+            test_df[test_df.filtered_demographics != ""].copy().reset_index()
+        )
+
         return (
-            train_df,
-            test_df,
+            filtered_train_df,
+            filtered_test_df,
             self.demographics,
         )

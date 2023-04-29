@@ -43,7 +43,7 @@ def build_demonstration(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
     overall_demographics: List[str],
-) -> List[str]:
+) -> Tuple[List[str], pd.DataFrame, str]:
     """Build demonstrations based on parameters
 
     :param demonstration_name: name of demonstration
@@ -68,7 +68,7 @@ def build_demonstration(
         "stratified": StratifiedSampler,
         "within": WithinDemographic,
         "similarity": SimilarityDemonstration,
-        "diversity": DiversityDemonstration
+        "diversity": DiversityDemonstration,
     }
 
     shots = None
@@ -86,10 +86,14 @@ def build_demonstration(
 
     sampler = demonstration(shots=shots)
 
-    return sampler.create_demonstrations(train_df, test_df, overall_demographics)
+    prompts, filtered_test_df = sampler.create_demonstrations(
+        train_df, test_df, overall_demographics
+    )
+
+    return prompts, filtered_test_df, sampler.type
 
 
-def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
+def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
     """Builds model class from model name and params provided
 
     :param model_name: name of model being used
@@ -100,24 +104,28 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
     :return: fully formed model
     :rtype: APIModel
     """
+
     models = {
-        "gpt3": GPT("text-davinci-003", **model_params),
-        "chatgpt": ChatGPT("gpt-3.5-turbo", **model_params),
-        "flan-ul2": HF(
-            "https://api-inference.huggingface.co/models/google/flan-ul2",
-            **model_params,
-        ),
+        "gpt3": ("gpt", "text-davinci-003"),
+        "davinci-002": ("gpt", "text-davinci-002"),
+        "chatgpt":  ("chatgpt", "gpt-3.5-turbo"),
+        "flan-ul2": ("hf", "https://api-inference.huggingface.co/models/google/flan-ul2"),
+        "ul2": ("hf", "https://api-inference.huggingface.co/models/google/ul2"),
+        "offline-ul2": ("hfoffline", "google/ul2")
     }
 
-    model = None
+    class_ = None
 
     try:
-        model = models[model_name]
+        model_info = models[model_name]
+        class_ = globals()[model_info[0]]
     except KeyError:
-        raise ValueError(f"{model_name} does not exist!")
+        raise ValueError(f"model {model_name} does not exit")
 
-    return model
+    instance = class_(model_info[1], **model_params)
 
+    return instance
+   
 
 def build_dataset(
     dataset_name: str, path: str
@@ -153,6 +161,7 @@ def run_dataset(
     overall_demographics: List[str],
     dataset: str,
     demonstration: str,
+    demonstration_type: str,
     demonstration_params: Dict[str, Any],
     models: List[str],
     output_folder: str,
@@ -160,7 +169,6 @@ def run_dataset(
     results = []
 
     for model_name in models:
-
         logging.info(
             f"Starting to create {model_name} model for {dataset} with {demonstration}"
         )
@@ -211,6 +219,7 @@ def run_dataset(
         result = [
             model_name,
             demonstration_params["shots"],
+            demonstration_type,
             demonstration,
             performance["total_score"],
         ]
@@ -227,7 +236,6 @@ def run_dataset(
         result.append(list(gaps.values())[0][3])
 
         for class_name in gaps:
-
             gap = gaps[class_name]
 
             result.append({class_name: list(gap)})
@@ -238,7 +246,10 @@ def run_dataset(
         os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
 
     with open(
-        os.path.join(output_folder, "results", f"results_{dataset}.csv"), "w"
+        os.path.join(
+            output_folder, "results", f"results_{dataset}_{demonstration}.csv"
+        ),
+        "w",
     ) as csvfile:
         csvwriter = csv.writer(csvfile)
 
@@ -265,7 +276,6 @@ def main(args):
 
     # loop through all datasets provided in config
     for dataset in datasets:
-
         logging.info(f"Starting to build {dataset} dataset")
 
         # build one dataset to use for all models and all demonstration combinations
@@ -279,13 +289,12 @@ def main(args):
 
         # loop through all demonstrations
         for demonstration in demonstrations:
-
             logging.info(
                 f"Starting to create {demonstration} demonstration for {dataset} dataset"
             )
 
             # create prompts from dataset
-            prompts = build_demonstration(
+            prompts, filtered_test_df, demonstration_type = build_demonstration(
                 demonstration,
                 demonstrations[demonstration],
                 train_df,
@@ -298,10 +307,11 @@ def main(args):
             # run dataset with all models provided
             run_dataset(
                 prompts,
-                test_df,
+                filtered_test_df,
                 overall_demographics,
                 dataset,
                 demonstration,
+                demonstration_type,
                 demonstrations[demonstration],
                 datasets[dataset]["models"],
                 output_folder,
@@ -311,10 +321,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--config",
-        required=True
-    )
+    parser.add_argument("--config", required=True)
 
     args = parser.parse_args()
 

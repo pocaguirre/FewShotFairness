@@ -12,7 +12,7 @@ def metrics(
     dataset: str,
     demographics: List[List[str]],
     overall_demographics: List[str],
-) -> Dict[str, Any]:
+) -> Dict[str, Any]:    
     """Returns a dictionary of overall macro f1 score,
     recall, specificity, and macro f1 for each group
     and largest gap in recall for each label
@@ -60,7 +60,6 @@ def metrics(
     dummy_preds = []
 
     for pred in preds_clean:
-
         # see if any of the labels are in the response
         for label in labels_set:
             if pred.find(label) != -1:
