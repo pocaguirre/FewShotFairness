@@ -151,8 +151,26 @@ class BiasInBios(Dataset):
             }
         )
 
+        set_of_overall_demographics = set(self.demographics)
+
+        train_df["filtered_demographics"] = train_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+        test_df["filtered_demographics"] = test_df["demographics"].apply(
+            lambda x: self.filter_demographics(x, set_of_overall_demographics)
+        )
+
+        # remove them
+        filtered_train_df = (
+            train_df[train_df.filtered_demographics != ""].copy().reset_index()
+        )
+
+        filtered_test_df = (
+            test_df[test_df.filtered_demographics != ""].copy().reset_index()
+        )
+
         return (
-            train_df,
-            test_df,
+            filtered_train_df,
+            filtered_test_df,
             self.demographics,
         )

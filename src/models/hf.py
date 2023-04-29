@@ -8,10 +8,10 @@ import backoff
 
 from tqdm import tqdm
 
-from .apimodel import APIModel
+from .apimodel import apimodel
 
 
-class HF(APIModel):
+class hf(apimodel):
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
         """HF model initializer
 

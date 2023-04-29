@@ -8,10 +8,10 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 from tqdm import tqdm
 
-from .apimodel import APIModel
+from .apimodel import apimodel
 
 
-class HFOffline(APIModel):
+class hfoffline(apimodel):
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
         """HF offline model initializer
 

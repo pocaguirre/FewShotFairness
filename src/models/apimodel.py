@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Iterable
 
 
-class APIModel:
+class apimodel:
     def __init__(
         self, model_name: str, temperature: float = 1, max_tokens: int = 5
     ) -> None:

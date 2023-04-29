@@ -10,13 +10,13 @@ import openai
 
 from tqdm import tqdm
 
-from .apimodel import APIModel
+from .apimodel import apimodel
 
 logger = logging.getLogger(__name__ + ".models")
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
-class ChatGPT(APIModel):
+class chatgpt(apimodel):
     def __init__(self, model_name: str, temperature: float = 1, max_tokens: int = 5):
         """ChatGPT initializer
 

@@ -40,11 +40,10 @@ class RandomSampler(Demonstration):
 
         # randomly sample the train data frame for each test
         for row in tqdm(test_df.itertuples()):
-            train_dems = train_df["prompts"].sample(n=self.shots).tolist()
-
-            if len(train_dems) != 0:
-                demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
-            else:
+            if self.shots == 0:
                 demonstrations.append(row.prompts)
-
+            else:
+                train_dems = train_df["prompts"].sample(n=self.shots).tolist()
+                demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
+                
         return demonstrations, test_df

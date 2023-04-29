@@ -93,7 +93,7 @@ def build_demonstration(
     return prompts, filtered_test_df, sampler.type
 
 
-def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
+def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
     """Builds model class from model name and params provided
 
     :param model_name: name of model being used
@@ -104,32 +104,28 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> APIModel:
     :return: fully formed model
     :rtype: APIModel
     """
+
     models = {
-        "gpt3": GPT("text-davinci-002", **model_params),
-        "chatgpt": ChatGPT("gpt-3.5-turbo", **model_params),
-        "flan-ul2": HF(
-            "https://api-inference.huggingface.co/models/google/flan-ul2",
-            **model_params,
-        ),
-        "ul2": HF(
-            "https://api-inference.huggingface.co/models/google/ul2",
-            **model_params,
-        ),
-        "offline-ul2": HFOffline(
-            "google/ul2",
-            **model_params,
-        ),
+        "gpt3": ("gpt", "text-davinci-003"),
+        "davinci-002": ("gpt", "text-davinci-002"),
+        "chatgpt":  ("chatgpt", "gpt-3.5-turbo"),
+        "flan-ul2": ("hf", "https://api-inference.huggingface.co/models/google/flan-ul2"),
+        "ul2": ("hf", "https://api-inference.huggingface.co/models/google/ul2"),
+        "offline-ul2": ("hfoffline", "google/ul2")
     }
 
-    model = None
+    class_ = None
 
     try:
-        model = models[model_name]
+        model_info = models[model_name]
+        class_ = globals()[model_info[0]]
     except KeyError:
-        raise ValueError(f"{model_name} does not exist!")
+        raise ValueError(f"model {model_name} does not exit")
 
-    return model
+    instance = class_(model_info[1], **model_params)
 
+    return instance
+   
 
 def build_dataset(
     dataset_name: str, path: str
@@ -308,7 +304,6 @@ def main(args):
 
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")
 
-            print(len(prompts), len(filtered_test_df))
             # run dataset with all models provided
             run_dataset(
                 prompts,

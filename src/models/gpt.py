@@ -10,13 +10,13 @@ import openai
 
 from tqdm import tqdm
 
-from .apimodel import APIModel
+from .apimodel import apimodel
 
 logger = logging.getLogger(__name__ + ".models")
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
-class GPT(APIModel):
+class gpt(apimodel):
     """Code modified from
     https://github.com/isabelcachola/generative-prompting/blob/main/genprompt/models.py
     """
