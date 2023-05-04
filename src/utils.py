@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 
 import numpy as np
 from sklearn.metrics import f1_score, confusion_matrix
@@ -12,7 +12,7 @@ def metrics(
     dataset: str,
     demographics: List[List[str]],
     overall_demographics: List[str],
-) -> Dict[str, Any]:    
+) -> Tuple[Dict[str, Any], Dict[str, int]]:    
     """Returns a dictionary of overall macro f1 score,
     recall, specificity, and macro f1 for each group
     and largest gap in recall for each label
@@ -147,4 +147,4 @@ def metrics(
 
     scores["max_gaps"] = max_gaps
 
-    return scores
+    return scores, labels_dict

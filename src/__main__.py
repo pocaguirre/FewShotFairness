@@ -212,13 +212,16 @@ def run_dataset(
             f"Calculating metrics for {model_name} on {dataset} with {demonstration}"
         )
 
-        performance = metrics(
+
+        performance, label_dict = metrics(
             responses,
             test_df["labels"].tolist(),
             dataset,
             test_df["demographics"].tolist(),
             overall_demographics,
         )
+
+        logging.info(label_dict)
 
         result = [
             model_name,
