@@ -109,9 +109,13 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
         "gpt3": ("gpt", "text-davinci-003"),
         "davinci-002": ("gpt", "text-davinci-002"),
         "chatgpt":  ("chatgpt", "gpt-3.5-turbo"),
-        "flan-ul2": ("hf", "https://api-inference.huggingface.co/models/google/flan-ul2"),
+        "flan-ul2": ("hfoffline", "google/flan-ul2"),
         "ul2": ("hf", "https://api-inference.huggingface.co/models/google/ul2"),
-        "offline-ul2": ("hfoffline", "google/ul2")
+        "offline-ul2": ("hfoffline", "google/ul2"),
+        "alpaca-13b" : ("hfoffline", "chavinlo/alpaca-13b"),
+        "alpaca-65b": ("hfoffline", "chavinlo/alpaca-native"),
+        "llama-13b": ("hfoffline", "decapoda-research/llama-13b-hf"),
+        "llama-65b" : ("hfoffline", "decapoda-research/llama-65b-hf"),
     }
 
     class_ = None
@@ -226,6 +230,8 @@ def run_dataset(
 
         group_results = performance["score"]
 
+        recall_results = performance["recall"]
+
         gaps = performance["max_gaps"]
 
         for group_result in group_results:
@@ -239,6 +245,9 @@ def run_dataset(
             gap = gaps[class_name]
 
             result.append({class_name: list(gap)})
+        
+        for recall_result in recall_results:
+             result.append({recall_result: recall_results[recall_result]})
 
         results.append(result)
 

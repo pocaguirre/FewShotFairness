@@ -24,7 +24,7 @@ class hfoffline(apimodel):
         """
         super().__init__(model_name, temperature, max_tokens)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, model_max_length=2048)
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -32,7 +32,7 @@ class hfoffline(apimodel):
 
         self.model.eval()
 
-        self.batch_size = 4
+        self.batch_size = 2
 
     def get_response(self, prompts: Iterable[str]) -> Dict[str, Any]:
         """ "Get response from HF model with prompt batch
@@ -84,5 +84,8 @@ class hfoffline(apimodel):
                 response = [self.format_response(x) for x in response]
 
                 responses.extend(response)
+        
+        del self.model
+        torch.cuda.empty_cache()
 
         return responses
