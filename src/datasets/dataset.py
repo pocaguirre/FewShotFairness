@@ -6,13 +6,38 @@ import pandas as pd
 class Dataset:
     """Base Class for datasets"""
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, type_of_prompt: str = "no_change"):
         """Base Class initalizer
 
         :param path: path to dataset
         :type path: str
         """
         self.path = path
+
+        self.types_of_prompts = [
+            "no_change",
+            "protected_category",
+            "expert",
+            "fairness",
+        ]
+
+        if type_of_prompt not in self.types_of_prompts:
+            raise ValueError(
+                f"Type of Demonstration: {type_of_prompt} not in {self.types_of_prompts}"
+            )
+
+        self.type_of_prompt = type_of_prompt
+
+    def build_protected_prompt(
+        self, text: str, label: str, protected_category: List[str]
+    ) -> str:
+        pass
+
+    def build_expert_prompt(self, text: str, label: str) -> str:
+        pass
+
+    def build_fairness_prompt(self, text: str, label: str) -> str:
+        pass
 
     def build_prompt(self, text: str, label: str) -> str:
         """Create prompt from input text and label
@@ -25,7 +50,7 @@ class Dataset:
         :rtype: str
         """
         pass
-    
+
     def filter_demographics(
         self, demographics: List[str], overall_demographics: Set[str]
     ) -> str:
