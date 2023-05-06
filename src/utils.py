@@ -12,7 +12,7 @@ def metrics(
     dataset: str,
     demographics: List[List[str]],
     overall_demographics: List[str],
-) -> Tuple[Dict[str, Any], Dict[str, int]]:    
+) -> Tuple[Dict[str, Any], Dict[str, int]]:
     """Returns a dictionary of overall macro f1 score,
     recall, specificity, and macro f1 for each group
     and largest gap in recall for each label
@@ -91,7 +91,6 @@ def metrics(
     )
 
     for dem in overall_demographics:
-
         # filter out items that do not have the specified demographic
         index = [i for i, item in enumerate(demographics_filtered) if dem in item]
 
