@@ -4,14 +4,12 @@ import torch
 
 from typing import Iterable, List, Dict, Any
 
-from accelerate import init_empty_weights, load_checkpoint_and_dispatch
-
 from transformers import (
     AutoTokenizer,
     AutoModelForSeq2SeqLM,
     AutoModelForCausalLM,
-    AutoConfig,
 )
+
 from tqdm import tqdm
 
 from .apimodel import apimodel
@@ -34,7 +32,11 @@ class hfoffline(apimodel):
             self.model_name, model_max_length=2048
         )
 
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        if self.model_name in ["huggyllama/llama-13b", "huggyllama/llama-65b"]:
+            self.tokenizer.pad_token = '<unk>'
+        
+        elif self.model_name in ["chavinlo/alpaca-13b", "chavinlo/alpaca-native"]:
+            self.tokenizer.pad_token = '[PAD]'
 
         self.model = None
 
@@ -44,15 +46,20 @@ class hfoffline(apimodel):
             "huggyllama/llama-65b",
             "chavinlo/alpaca-native",
         ]:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name, torch_dtype=torch.float16, device_map="balanced_low_0"
-            )
+            n_gpus = torch.cuda.device_count()
+
+            if n_gpus == 1:
+
+                self.model = AutoModelForCausalLM.from_pretrained(self.model_name).to(0)
+            
+            else:
+
+                self.model = AutoModelForCausalLM.from_pretrained(self.model_name, device_map = "balanced_low_0")
+
             self.model.resize_token_embeddings(len(self.tokenizer))
 
         else:
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(
-                self.device
-            )
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(0)
 
         self.model.eval()
 
@@ -67,7 +74,7 @@ class hfoffline(apimodel):
         :rtype: Dict[str, Any]
         """
         tokenized_input = self.tokenizer(
-            prompts, return_tensors="pt", padding="max_length", truncation=True
+            prompts, return_tensors="pt", padding="max_length"
         )
 
         if self.model_name in [
@@ -86,7 +93,9 @@ class hfoffline(apimodel):
             max_new_tokens=self.max_tokens
         )
 
-        return self.tokenizer.batch_decode(outputs.cpu(), skip_special_tokens=True)
+        output = self.tokenizer.batch_decode(outputs.cpu(), skip_special_tokens=True)
+
+        return output
 
     def format_response(self, response: str) -> str:
         """Clean up response from Offline HF model and return generated string
