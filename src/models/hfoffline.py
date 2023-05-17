@@ -28,16 +28,6 @@ class hfoffline(apimodel):
         """
         super().__init__(model_name, temperature, max_tokens)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name, model_max_length=2048
-        )
-
-        if self.model_name in ["huggyllama/llama-13b", "huggyllama/llama-65b"]:
-            self.tokenizer.pad_token = '<unk>'
-        
-        elif self.model_name in ["chavinlo/alpaca-13b", "chavinlo/alpaca-native"]:
-            self.tokenizer.pad_token = '[PAD]'
-
         self.model = None
 
         if self.model_name in [
@@ -56,13 +46,24 @@ class hfoffline(apimodel):
 
                 self.model = AutoModelForCausalLM.from_pretrained(self.model_name, device_map = "balanced_low_0")
 
-            self.model.resize_token_embeddings(len(self.tokenizer))
 
         else:
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(0)
 
-        self.model.eval()
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name, model_max_length=2048
+        )
 
+        if self.model_name in ["huggyllama/llama-13b", "huggyllama/llama-65b"]:
+            self.tokenizer.pad_token = '<unk>'
+        
+        elif self.model_name in ["chavinlo/alpaca-13b", "chavinlo/alpaca-native"]:
+            self.tokenizer.pad_token = '[PAD]'
+
+        self.model.resize_token_embeddings(len(self.tokenizer))
+
+        self.model.eval()
+        
         self.batch_size = 1
 
     def get_response(self, prompts: Iterable[str]) -> Dict[str, Any]:

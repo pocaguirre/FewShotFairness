@@ -5,10 +5,8 @@ import pandas as pd
 import faiss
 
 from .semanticdemonstration import SemanticDemonstration
-from .demographicdemonstration import DemographicDemonstration
 
-
-class ExcludingSimilarityDemonstration(SemanticDemonstration, DemographicDemonstration):
+class ExcludingSimilarityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         """Similarity demonstration initalization
 
@@ -16,7 +14,6 @@ class ExcludingSimilarityDemonstration(SemanticDemonstration, DemographicDemonst
         :type shots: int, optional
         """
         SemanticDemonstration.__init__(shots)
-        DemographicDemonstration.__init__(shots)
 
     def create_demonstrations(
         self,

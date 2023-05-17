@@ -5,10 +5,9 @@ import pandas as pd
 import faiss
 
 from .semanticdemonstration import SemanticDemonstration
-from .demographicdemonstration import DemographicDemonstration
 
 
-class WithinDiversityDemonstration(SemanticDemonstration, DemographicDemonstration):
+class WithinDiversityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         """Similarity demonstration initalization
 
@@ -16,7 +15,6 @@ class WithinDiversityDemonstration(SemanticDemonstration, DemographicDemonstrati
         :type shots: int, optional
         """
         SemanticDemonstration.__init__(shots)
-        DemographicDemonstration.__init__(shots)
 
     def create_demonstrations(
         self,
