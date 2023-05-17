@@ -13,7 +13,7 @@ class ExcludingDiversityDemonstration(SemanticDemonstration):
         :param shots: number of shots in demonstration, defaults to 16
         :type shots: int, optional
         """
-        SemanticDemonstration.__init__(shots)
+        super().__init__(shots)
 
     def create_demonstrations(
         self,
@@ -62,7 +62,7 @@ class ExcludingDiversityDemonstration(SemanticDemonstration):
             kmeans = faiss.Kmeans(vector_dim, self.shots, verbose=True)
 
             index = faiss.IndexFlatIP(vector_dim)
-            kmeans = kmeans.train(filtered_train_vectors)
+            kmeans.train(filtered_train_vectors)
 
             index.add(filtered_train_vectors)
 

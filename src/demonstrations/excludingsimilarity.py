@@ -13,7 +13,7 @@ class ExcludingSimilarityDemonstration(SemanticDemonstration):
         :param shots: number of shots in demonstration, defaults to 16
         :type shots: int, optional
         """
-        SemanticDemonstration.__init__(shots)
+        super().__init__(shots)
 
     def create_demonstrations(
         self,

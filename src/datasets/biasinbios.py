@@ -120,7 +120,7 @@ class BiasInBios(Dataset):
             + "Occupations: "
             + ", ".join(self.labels)
             + "\nRemember you are an expert in this field "
-            + +"The occupation of this person is "
+            + "The occupation of this person is "
             + label
         )
 
