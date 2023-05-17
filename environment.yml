@@ -221,5 +221,4 @@ dependencies:
     - tiktoken==0.3.3
     - tokenizers==0.13.3
     - transformers==4.28.1
-prefix: /home/ksasse/.conda/envs/fairness
 
