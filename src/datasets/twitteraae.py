@@ -71,6 +71,12 @@ class TwitterAAE(Dataset):
             protected_category, self.demographics
         )
 
+        if filtered_protected_category == 'wh':
+            filtered_protected_category = 'white'
+        
+        elif filtered_protected_category == 'aa':
+            filtered_protected_category = 'african american'
+
         return (
             "Post: "
             + text
