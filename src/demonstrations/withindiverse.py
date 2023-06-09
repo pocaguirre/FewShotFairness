@@ -41,7 +41,7 @@ class WithinDiversityDemonstration(SemanticDemonstration):
         for demographic in set_of_overall_demographics:
             train_pre_computed_inclusions[demographic] = train_df[
                 train_df.filtered_demographics == demographic
-            ].index.tolist()
+            ].index.to_numpy()
 
         # embed our train and test df to vectors
         self.embed(train_df, test_df)
@@ -71,7 +71,7 @@ class WithinDiversityDemonstration(SemanticDemonstration):
 
             neighbors = [element for sublist in neighbors for element in sublist]
 
-            train_dems = train_df["prompts"].iloc[neighbors].tolist()
+            train_dems = train_df["prompts"].iloc[demographic_index[neighbors]].tolist()
 
             diverse_prompts_demographic_map[demographic] = train_dems
 

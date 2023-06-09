@@ -40,14 +40,14 @@ class WithinSimilarityDemonstration(SemanticDemonstration):
         for demographic in set_of_overall_demographics:
             train_pre_computed_inclusions[demographic] = train_df[
                 train_df.filtered_demographics == demographic
-            ].index.tolist()
+            ].index.to_numpy()
 
         test_pre_computed_inclusions = dict()
 
         for demographic in set_of_overall_demographics:
             test_pre_computed_inclusions[demographic] = test_df[
                 test_df.filtered_demographics == demographic
-            ].index.tolist()
+            ].index.to_numpy()
 
         # embed our train and test df to vectors
         self.embed(train_df, test_df)
@@ -86,12 +86,18 @@ class WithinSimilarityDemonstration(SemanticDemonstration):
 
             train_vector_index = train_demographic_vector_index_map[demographic]
 
+            train_demographic_index = train_pre_computed_inclusions[demographic]
+
+            test_demographic_index = test_pre_computed_inclusions[demographic]
+
             distances, neighbors = train_vector_index.search(
                 test_vector_filtered, self.shots
             )
 
-            for neighbor, row in zip(neighbors, test_df.itertuples()):
-                train_dems = train_df["prompts"].iloc[neighbor].tolist()
+            demographic_test_df = test_df.iloc[test_demographic_index]
+
+            for neighbor, row in zip(neighbors, demographic_test_df.itertuples()):
+                train_dems = train_df["prompts"].iloc[train_demographic_index[neighbor]].tolist()
 
                 demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
 
