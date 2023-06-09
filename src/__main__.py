@@ -265,6 +265,7 @@ def run_dataset(
             output_folder, "results", f"results_{dataset}_{demonstration}.csv"
         ),
         "w",
+        encoding="utf-8",
     ) as csvfile:
         csvwriter = csv.writer(csvfile)
 
