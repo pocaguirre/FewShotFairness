@@ -9,6 +9,7 @@ Tested using Python 3.11.0, miniconda 23.1.0, git 2.25.1
 conda env create -f environment.yml 
 ```
 2. Set environment variables `HF_ACCESS_TOKEN` to your huggingface API token and `OPENAI_API_KEY` to your openai API key
+3. Optional: Set `TRANSFORMERS_CACHE` to your lab's transformer cache especially on HPC environments!
 
 ## Data Setup
 We use 3 datasets. 
@@ -70,3 +71,25 @@ We include tests for sanity checking to run these
 ```bash
 python -m pytest
 ```
+
+## WIP LLaMa and Alpaca Models
+LLaMa models and Alpaca Models have been erroring out recently but we are still going to experiment with them
+
+To fit them into the API, I have modified the `hfoffline.py` file to compensate for their weirdness
+
+I have successfully
+1. Integrated them into the api
+2. Loading their models
+3. Loaded them onto gpus using device map (dont change it from balanced_low_0 it good for generation)
+4. Resized the model embeddings to fit the length
+5. Loading their tokenizer
+6. Set their tokenizer padding tokens accordingly
+7. Set the generation parameters
+
+I have not successfully generated anything because of CUDA OOM and CUBLAS not initalized without trying to increase gpus :(
+1. Converting to float16 to fit on gpus
+2. Lowering batch_size
+3. Putting CUDA_LAUNCH_BLOCKING=0
+
+I have not tried
+1. Being greedy with GPUs :)

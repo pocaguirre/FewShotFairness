@@ -12,14 +12,14 @@ from .dataset import Dataset
 
 
 class TwitterAAE(Dataset):
-    def __init__(self, path: str):
+    def __init__(self, path: str, type_of_prompt: str = "no_change"):
         """Wrapper for TwitterAAE dataset
 
         :param path: path to TwitterAAE dataset
         :type path: str
         :raises ValueError: path is invalid
         """
-        super().__init__(path)
+        super().__init__(path, type_of_prompt)
 
         self.datasets = dict()
 
@@ -48,7 +48,7 @@ class TwitterAAE(Dataset):
 
         self.demographics = ["aa", "wh"]
 
-        self.labels = ['sad', 'happy']
+        self.labels = ["sad", "happy"]
 
     def build_prompt(self, text: str, label: str) -> str:
         """Create prompt for twitter aae
@@ -62,6 +62,42 @@ class TwitterAAE(Dataset):
         """
         return (
             "Post: " + text + "\nQuestion: Is this post happy or sad?\nAnswer: " + label
+        )
+
+    def build_protected_prompt(
+        self, text: str, label: str, protected_category: List[str]
+    ) -> str:
+        filtered_protected_category = self.filter_demographics(
+            protected_category, self.demographics
+        )
+
+        return (
+            "Post: "
+            + text
+            + "\nThe person posting this is "
+            + filtered_protected_category
+            + "\nQuestion: Is this post happy or sad?\nAnswer: "
+            + label
+        )
+
+    def build_expert_prompt(self, text: str, label: str) -> str:
+        return (
+            "Post: "
+            + text
+            + "\nQuestion: Is this post happy or sad?"
+            + "\nRemember you are an expert in the field"
+            + "\nAnswer: "
+            + label
+        )
+
+    def build_fairness_prompt(self, text: str, label: str) -> str:
+        return (
+            "Post: "
+            + text
+            + "\nQuestion: Is this post happy or sad?"
+            + "\nRemember to keep fairness in mind"
+            + "\nAnswer: "
+            + label
         )
 
     def read_data_file(self, input_file: str) -> Tuple[List[str], List[str]]:
@@ -108,7 +144,10 @@ class TwitterAAE(Dataset):
         # create train prompts
         for item in self.datasets["train"]:
             # item 0 is text, item 1 is label
-            prompt = self.build_prompt(item[0], item[1])
+            if self.type_of_prompt == "protected_category":
+                prompt = self.build_protected_prompt(item[0], item[1], [item[2]])
+            else:
+                prompt = self.build_prompt(item[0], item[1])
 
             train_prompts.append(prompt)
 
@@ -124,10 +163,19 @@ class TwitterAAE(Dataset):
 
         # create test prompts
         for item in self.datasets["test"]:
-            prompt = self.build_prompt(item[0], "")
+            if self.type_of_prompt == "protected_category":
+                prompt = self.build_protected_prompt(item[0], "", [item[2]])
+
+            elif self.type_of_prompt == "expert":
+                prompt = self.build_expert_prompt(item[0], "")
+
+            elif self.type_of_prompt == "fairness":
+                prompt = self.build_fairness_prompt(item[0], "")
+
+            else:
+                prompt = self.build_prompt(item[0], "")
 
             test_prompts.append(prompt)
-
             test_labels.append(item[1])
 
             # item 2 is demographics

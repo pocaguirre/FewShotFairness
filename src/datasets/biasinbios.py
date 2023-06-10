@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class BiasInBios(Dataset):
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, type_of_prompt: str = "no_change") -> None:
         """Wrapper for BiasInBios dataset
 
         :param path: path to folder containing dataset
@@ -18,7 +18,7 @@ class BiasInBios(Dataset):
         :raises ValueError: path to dataset does not exist
         :raises ValueError: pickle file does not exist
         """
-        super().__init__(path)
+        super().__init__(path, type_of_prompt)
 
         self.filenames = ["train.pickle", "test.pickle"]
 
@@ -94,6 +94,47 @@ class BiasInBios(Dataset):
             + label
         )
 
+    def build_protected_prompt(
+        self, text: str, label: str, protected_category: List[str]
+    ) -> str:
+        filtered_protected_category = self.filter_demographics(
+            protected_category, self.demographics
+        )
+
+        return (
+            text
+            + "\n "
+            + "This person identifies as "
+            + filtered_protected_category
+            + "\n "
+            + "Occupations: "
+            + ", ".join(self.labels)
+            + "\nThe occupation of this person is "
+            + label
+        )
+
+    def build_expert_prompt(self, text: str, label: str) -> str:
+        return (
+            text
+            + "\n "
+            + "Occupations: "
+            + ", ".join(self.labels)
+            + "\nRemember you are an expert in this field "
+            + "The occupation of this person is "
+            + label
+        )
+
+    def build_fairness_prompt(self, text: str, label: str) -> str:
+        return (
+            text
+            + "\n "
+            + "Occupations: "
+            + ", ".join(self.labels)
+            + "\nRemember to keep fairness in mind "
+            + +"The occupation of this person is "
+            + label
+        )
+
     def create_prompts(
         self,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
@@ -110,7 +151,11 @@ class BiasInBios(Dataset):
 
         # build train dataset
         for item in self.datasets["train"].itertuples():
-            prompt = self.build_prompt(item.hard_text, item.p)
+            if self.type_of_prompt == "protected_category":
+                prompt = self.build_protected_prompt(item.hard_text, item.p, [item.g])
+
+            else:
+                prompt = self.build_prompt(item.hard_text, item.p)
 
             train_prompts.append(prompt)
 
@@ -126,7 +171,17 @@ class BiasInBios(Dataset):
 
         # build test dataset
         for item in self.datasets["test"].itertuples():
-            prompt = self.build_prompt(item.hard_text, "")
+            if self.type_of_prompt == "protected_category":
+                prompt = self.build_protected_prompt(item.hard_text, "", [item.g])
+
+            elif self.type_of_prompt == "expert":
+                prompt = self.build_expert_prompt(item.hard_text, "")
+
+            elif self.type_of_prompt == "fairness":
+                prompt = self.build_fairness_prompt(item.hard_text, "")
+
+            else:
+                prompt = self.build_prompt(item.hard_text, "")
 
             test_prompts.append(prompt)
 

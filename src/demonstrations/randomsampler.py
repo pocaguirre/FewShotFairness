@@ -45,5 +45,5 @@ class RandomSampler(Demonstration):
             else:
                 train_dems = train_df["prompts"].sample(n=self.shots).tolist()
                 demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
-                
+
         return demonstrations, test_df
