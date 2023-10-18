@@ -12,14 +12,14 @@ from .dataset import Dataset
 
 
 class HateXplain(Dataset):
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, type_of_prompt: str = "no_change") -> None:
         """Wrapper for HateXplain Dataset
 
         :param path: path to HateXplain dataset
         :type path: str
         :raises ValueError: path does not exist
         """
-        super().__init__(path)
+        super().__init__(path, type_of_prompt)
 
         self.datasets: Dict[str, Any] = {}
 
@@ -66,7 +66,7 @@ class HateXplain(Dataset):
 
         self.gender_demographics = ["Men", "Women"]
 
-        self.labels = ['yes', 'no']
+        self.labels = ["yes", "no"]
 
     def build_prompt(self, text: str, label: str) -> str:
         """Build prompts for HateXplain
@@ -82,6 +82,26 @@ class HateXplain(Dataset):
             "Post: "
             + text
             + "\nQuestion: Does this post contain offensive language?\nAnswer: "
+            + label
+        )
+
+    def build_expert_prompt(self, text: str, label: str) -> str:
+        return (
+            "Post: "
+            + text
+            + "\nQuestion: Does this post contain offensive language?"
+            + "\nRemember you are an expert in the field"
+            + "\nAnswer: "
+            + label
+        )
+
+    def build_fairness_prompt(self, text: str, label: str) -> str:
+        return (
+            "Post: "
+            + text
+            + "\nQuestion: Does this post contain offensive language?"
+            + "\nRemember to keep fairness in mind"
+            + "\nAnswer: "
             + label
         )
 
@@ -160,29 +180,6 @@ class HateXplain(Dataset):
 
         return demographic
 
-    def filter_demographics(
-        self, demographics: List[str], overall_demographics: Set[str]
-    ) -> str:
-        """filter demographics that we are focusing on
-
-        :param demographics: demographics of that post
-        :type demographics: List[str]
-        :param overall_demographics: demographics to focus on
-        :type overall_demographics: Set[str]
-        :return: first item in intersection
-        :rtype: str
-        """
-
-        set_of_demographics = set(demographics)
-
-        intersection = set_of_demographics.intersection(overall_demographics)
-
-        if len(intersection) == 0:
-            return ""
-
-        else:
-            return list(intersection)[0]
-
     def create_prompts(
         self,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -212,7 +209,11 @@ class HateXplain(Dataset):
             if label is not None and demographic is not None:
                 sentence = " ".join(item["post_tokens"])
 
-                prompt = self.build_prompt(sentence, label=label)
+                if self.type_of_prompt == "protected_category":
+                    prompt = self.build_protected_prompt(sentence, label, demographic)
+
+                else:
+                    prompt = self.build_prompt(sentence, label)
 
                 train_prompts.append(prompt)
 
@@ -239,7 +240,17 @@ class HateXplain(Dataset):
             if label is not None and demographic is not None:
                 sentence = " ".join(item["post_tokens"])
 
-                prompt = self.build_prompt(sentence, "")
+                if self.type_of_prompt == "protected_category":
+                    prompt = self.build_protected_prompt(sentence, "", demographic)
+
+                elif self.type_of_prompt == "expert":
+                    prompt = self.build_expert_prompt(sentence, "")
+
+                elif self.type_of_prompt == "fairness":
+                    prompt = self.build_fairness_prompt(sentence, "")
+
+                else:
+                    prompt = self.build_prompt(sentence, "")
 
                 test_prompts.append(prompt)
 

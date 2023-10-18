@@ -1,0 +1,90 @@
+[general]
+seed = 2020
+output_folder = "/scratch4/mdredze1/ksasse/fairnessresults/10shot_matrix_protected_category_prompts_flanul2"
+
+
+[datasets]
+  [datasets.bias]
+    path = "/scratch4/mdredze1/ksasse/data/biasbios"
+    prompt_type = "protected_category"
+    [datasets.bias.demonstrations]
+      [datasets.bias.demonstrations.zeroshot]
+      [datasets.bias.demonstrations.random]
+      shots = 10
+      [datasets.bias.demonstrations.stratified]
+      shots = 10
+      [datasets.bias.demonstrations.within]
+      shots = 10
+      [datasets.bias.demonstrations.similarity]
+      shots = 10
+      [datasets.bias.demonstrations.diversity]
+      shots = 10
+      [datasets.bias.demonstrations.withindiversity]
+      shots = 10
+      [datasets.bias.demonstrations.withinsimilarity]
+      shots = 10
+      [datasets.bias.demonstrations.excludingdiversity]
+      shots = 10
+      [datasets.bias.demonstrations.excludingsimilarity]
+      shots = 10
+    [datasets.bias.models]
+      [datasets.bias.models.flan-ul2]
+        temperature = 1
+        max_tokens = 5
+      
+  [datasets.aae]
+    path = "/scratch4/mdredze1/ksasse/data/moji/twitteraae_sentiment_race"
+    prompt_type = "protected_category"
+    [datasets.aae.demonstrations]
+      [datasets.aae.demonstrations.zeroshot]
+      [datasets.aae.demonstrations.random]
+      shots = 10
+      [datasets.aae.demonstrations.stratified]
+      shots = 10
+      [datasets.aae.demonstrations.within]
+      shots = 10
+      [datasets.aae.demonstrations.similarity]
+      shots = 10
+      [datasets.aae.demonstrations.diversity]
+      shots = 10
+      [datasets.aae.demonstrations.withindiversity]
+      shots = 10
+      [datasets.aae.demonstrations.withinsimilarity]
+      shots = 10
+      [datasets.aae.demonstrations.excludingdiversity]
+      shots = 10
+      [datasets.aae.demonstrations.excludingsimilarity]
+      shots = 10
+    [datasets.aae.models]
+        [datasets.aae.models.flan-ul2]
+            temperature = 1
+            max_tokens = 5
+
+  [datasets.hatexplain-race]
+    path = "/scratch4/mdredze1/ksasse/data/HateXplain"
+    prompt_type = "protected_category"
+    [datasets.hatexplain-race.demonstrations]
+      [datasets.hatexplain-race.demonstrations.zeroshot]
+      [datasets.hatexplain-race.demonstrations.random]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.stratified]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.within]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.similarity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.diversity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.withindiversity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.withinsimilarity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.excludingdiversity]
+      shots = 10
+      [datasets.hatexplain-race.demonstrations.excludingsimilarity]
+      shots = 10
+    [datasets.hatexplain-race.models]
+      [datasets.hatexplain-race.models.flan-ul2]
+        temperature = 1
+        max_tokens = 5
+      

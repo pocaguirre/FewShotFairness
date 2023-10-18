@@ -4,3 +4,7 @@ from .randomsampler import RandomSampler
 from .similaritydemonstration import SimilarityDemonstration
 from .stratifiedsampler import StratifiedSampler
 from .withindemographic import WithinDemographic
+from .excludingdiverse import ExcludingDiversityDemonstration
+from .excludingsimilarity import ExcludingSimilarityDemonstration
+from .withindiverse import WithinDiversityDemonstration
+from .withinsimilarity import WithinSimilarityDemonstration

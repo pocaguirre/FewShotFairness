@@ -69,6 +69,10 @@ def build_demonstration(
         "within": WithinDemographic,
         "similarity": SimilarityDemonstration,
         "diversity": DiversityDemonstration,
+        "withindiversity": WithinDiversityDemonstration,
+        "withinsimilarity": WithinSimilarityDemonstration,
+        "excludingdiversity": ExcludingDiversityDemonstration,
+        "excludingsimilarity": ExcludingSimilarityDemonstration,
     }
 
     shots = None
@@ -108,10 +112,14 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
     models = {
         "gpt3": ("gpt", "text-davinci-003"),
         "davinci-002": ("gpt", "text-davinci-002"),
-        "chatgpt":  ("chatgpt", "gpt-3.5-turbo"),
-        "flan-ul2": ("hf", "https://api-inference.huggingface.co/models/google/flan-ul2"),
+        "chatgpt": ("chatgpt", "gpt-3.5-turbo"),
+        "flan-ul2": ("hfoffline", "google/flan-ul2"),
         "ul2": ("hf", "https://api-inference.huggingface.co/models/google/ul2"),
-        "offline-ul2": ("hfoffline", "google/ul2")
+        "offline-ul2": ("hfoffline", "google/ul2"),
+        "alpaca-13b": ("hfoffline", "chavinlo/alpaca-13b"),
+        "alpaca-7b": ("hfoffline", "chavinlo/alpaca-native"),
+        "llama-13b": ("hfoffline", "huggyllama/llama-13b"),
+        "llama-65b": ("hfoffline", "huggyllama/llama-65b"),
     }
 
     class_ = None
@@ -125,10 +133,10 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
     instance = class_(model_info[1], **model_params)
 
     return instance
-   
+
 
 def build_dataset(
-    dataset_name: str, path: str
+    dataset_name: str, path: str, prompt_type: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
     """Build dataset based on name and path to it
 
@@ -148,7 +156,7 @@ def build_dataset(
     }
 
     try:
-        dataset = datasets[dataset_name](path)
+        dataset = datasets[dataset_name](path, prompt_type)
     except KeyError:
         raise ValueError(f"{dataset_name} does not exist!")
 
@@ -208,13 +216,15 @@ def run_dataset(
             f"Calculating metrics for {model_name} on {dataset} with {demonstration}"
         )
 
-        performance = metrics(
+        performance, label_dict = metrics(
             responses,
             test_df["labels"].tolist(),
             dataset,
             test_df["demographics"].tolist(),
             overall_demographics,
         )
+
+        logging.info(label_dict)
 
         result = [
             model_name,
@@ -225,6 +235,8 @@ def run_dataset(
         ]
 
         group_results = performance["score"]
+
+        recall_results = performance["recall"]
 
         gaps = performance["max_gaps"]
 
@@ -239,6 +251,9 @@ def run_dataset(
             gap = gaps[class_name]
 
             result.append({class_name: list(gap)})
+
+        for recall_result in recall_results:
+            result.append({recall_result: recall_results[recall_result]})
 
         results.append(result)
 
@@ -280,7 +295,7 @@ def main(args):
 
         # build one dataset to use for all models and all demonstration combinations
         train_df, test_df, overall_demographics = build_dataset(
-            dataset, datasets[dataset]["path"]
+            dataset, datasets[dataset]["path"], datasets[dataset]["prompt_type"]
         )
 
         logging.info(f"Built {dataset} dataset")

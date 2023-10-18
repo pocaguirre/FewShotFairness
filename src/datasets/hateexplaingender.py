@@ -6,15 +6,31 @@ from .hatexplain import HateXplain
 
 
 class HateXplainGender(HateXplain):
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, type_of_prompt: str = "no_change") -> None:
         """Wrapper for HateXplainGender dataset
 
         :param path: path to folder containing dataset
         :type path: str
         """
-        super().__init__(path)
+        super().__init__(path, type_of_prompt)
 
         self.demographics = self.gender_demographics
+
+    def build_protected_prompt(
+        self, text: str, label: str, protected_category: List[str]
+    ) -> str:
+        filtered_protected_category = self.filter_demographics(
+            protected_category, self.demographics
+        )
+
+        return (
+            "Post: "
+            + text
+            + "\nThe person being attacked is "
+            + filtered_protected_category
+            + "\nQuestion: Does this post contain offensive language?\nAnswer: "
+            + label
+        )
 
     def create_prompts(
         self,
