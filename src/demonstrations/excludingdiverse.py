@@ -6,6 +6,7 @@ import faiss
 
 from .semanticdemonstration import SemanticDemonstration
 
+
 class ExcludingDiversityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         """Similarity demonstration initalization

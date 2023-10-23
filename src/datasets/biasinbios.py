@@ -101,10 +101,10 @@ class BiasInBios(Dataset):
             protected_category, self.demographics
         )
 
-        if filtered_protected_category == 'f':
-            filtered_protected_category = 'female'
-        elif filtered_protected_category == 'm':
-            filtered_protected_category = 'male'
+        if filtered_protected_category == "f":
+            filtered_protected_category = "female"
+        elif filtered_protected_category == "m":
+            filtered_protected_category = "male"
 
         return (
             text

@@ -6,6 +6,7 @@ import faiss
 
 from .semanticdemonstration import SemanticDemonstration
 
+
 class WithinSimilarityDemonstration(SemanticDemonstration):
     def __init__(self, shots: int = 16) -> None:
         """Similarity demonstration initalization
@@ -97,7 +98,9 @@ class WithinSimilarityDemonstration(SemanticDemonstration):
             demographic_test_df = test_df.iloc[test_demographic_index]
 
             for neighbor, row in zip(neighbors, demographic_test_df.itertuples()):
-                train_dems = train_df["prompts"].iloc[train_demographic_index[neighbor]].tolist()
+                train_dems = (
+                    train_df["prompts"].iloc[train_demographic_index[neighbor]].tolist()
+                )
 
                 demonstrations.append("\n\n".join(train_dems) + "\n\n" + row.prompts)
 
