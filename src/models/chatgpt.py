@@ -1,3 +1,5 @@
+import csv
+
 import os
 
 import logging
@@ -7,6 +9,8 @@ from typing import Iterable, List, Dict, Any
 import backoff
 
 import openai
+
+import pandas as pd
 
 from tqdm import tqdm
 
@@ -72,31 +76,65 @@ class chatgpt(apimodel):
         text = response["message"]["content"].replace("\n", " ").strip()
         return text
 
-    def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
-        """Send all examples to chatGPT and get its responses
+    def generate_from_prompts(
+        self,
+        prompts: Iterable[str],
+        output_folder: str,
+        model_name: str,
+        dataset: str,
+        demonstration: str,
+        test_df: pd.DataFrame,
+        checkpoint_start: int,
+    ) -> List[str]:
+        """Send all prompts to chatGPT and get its responses
 
-        :param examples: list of prompts
-        :type examples: Iterable[str]
+        :param prompts: list of prompts
+        :type prompts: Iterable[str]
         :return: list of cleaned responses
         :rtype: List[str]
         """
-        lines_length = len(examples)
-        logger.info(f"Num examples = {lines_length}")
+        lines_length = len(prompts)
+        logger.info(f"Num prompts = {lines_length}")
 
         responses = []
 
-        # loop through examples
-        for example in tqdm(examples):
-            # try to get response
-            # catch any errors that happen
-            try:
-                response = self.get_response(example)
-                for line in response["choices"]:
-                    line = self.format_response(line)
-                    responses.append(line)
-            except Exception as e:
-                print(e)
-                responses.append("")
-                print(f"Failure of {example}")
+        labels = test_df["labels"].tolist()
+        demographics = test_df["demographics"].tolist()
+
+        if os.path.exists(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv")
+        ):
+            mode = "a"
+        else:
+            mode = "w"
+        
+        with open(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv"),
+            mode,
+        ) as csvfile:
+            csvwriter = csv.writer(csvfile)
+            if mode == "w":
+                csvwriter.writerow(["prompt", "response", "label", "demographic"])
+
+            # loop through examples
+            for i in tqdm(range(checkpoint_start ,len(prompts))):
+                # try to get response
+                # catch any errors that happen
+                prompt = prompt[i]
+                label = labels[i]
+                demographic = demographics[i]
+
+                try:
+                    response = self.get_response(prompt)
+                    formatted_response = self.format_response(response["choices"][0])
+                    responses.append(formatted_response)
+                    
+                except Exception as e:
+                    print(e)
+                    formatted_response = ""
+                    responses.append(formatted_response)
+                    print(f"Failure of {prompt}")
+                
+                csvwriter.writerow([prompt, formatted_response, label, demographic])
 
         return responses

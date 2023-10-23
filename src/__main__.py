@@ -37,6 +37,29 @@ def set_randomness(seed: int):
     np.random.seed(seed)
 
 
+def get_demonstration_types(demonstration_name: str):
+    demonstrations = {
+        "excluding": ExcludingDemographic,
+        "zeroshot": RandomSampler,
+        "random": RandomSampler,
+        "stratified": StratifiedSampler,
+        "within": WithinDemographic,
+        "similarity": SimilarityDemonstration,
+        "diversity": DiversityDemonstration,
+        "withindiversity": WithinDiversityDemonstration,
+        "withinsimilarity": WithinSimilarityDemonstration,
+        "excludingdiversity": ExcludingDiversityDemonstration,
+        "excludingsimilarity": ExcludingSimilarityDemonstration,
+    }
+
+    try:
+        demonstration = demonstrations[demonstration_name]
+    except KeyError:
+        raise ValueError(f"{demonstration_name} does not exist!")
+
+    return demonstration
+
+
 def build_demonstration(
     demonstration_name: str,
     demonstration_params: Dict[str, Any],
@@ -61,20 +84,6 @@ def build_demonstration(
     :rtype: List[str]
     """
 
-    demonstrations = {
-        "excluding": ExcludingDemographic,
-        "zeroshot": RandomSampler,
-        "random": RandomSampler,
-        "stratified": StratifiedSampler,
-        "within": WithinDemographic,
-        "similarity": SimilarityDemonstration,
-        "diversity": DiversityDemonstration,
-        "withindiversity": WithinDiversityDemonstration,
-        "withinsimilarity": WithinSimilarityDemonstration,
-        "excludingdiversity": ExcludingDiversityDemonstration,
-        "excludingsimilarity": ExcludingSimilarityDemonstration,
-    }
-
     shots = None
 
     if demonstration_name == "zeroshot":
@@ -83,10 +92,7 @@ def build_demonstration(
     else:
         shots = demonstration_params["shots"]
 
-    try:
-        demonstration = demonstrations[demonstration_name]
-    except KeyError:
-        raise ValueError(f"{demonstration_name} does not exist!")
+    demonstration = get_demonstration_types(demonstration_name)
 
     sampler = demonstration(shots=shots)
 
@@ -120,6 +126,10 @@ def build_model(model_name: str, model_params: Dict[str, Any]) -> apimodel:
         "alpaca-7b": ("hfoffline", "chavinlo/alpaca-native"),
         "llama-13b": ("hfoffline", "huggyllama/llama-13b"),
         "llama-65b": ("hfoffline", "huggyllama/llama-65b"),
+        "llama2-13b": ("hfoffline", "meta-llama/Llama-2-13b-hf"),
+        "llama2-70b": ("hfoffline", "meta-llama/Llama-2-70b-hf"),
+        "llama2-13b-chat": ("hfoffline", "meta-llama/Llama-2-13b-chat-hf"),
+        "llama2-70b-chat": ("hfoffline", "meta-llama/Llama-2-70b-chat-hf"),
     }
 
     class_ = None
@@ -187,26 +197,23 @@ def run_dataset(
 
         logging.info(f"Running {model_name} on {dataset} with {demonstration}")
 
-        responses = model.generate_from_prompts(prompts)
-
         if not os.path.exists(output_folder):
             os.makedirs(output_folder, exist_ok=True)
 
-        with open(
-            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv"),
-            "w",
-        ) as csvfile:
-            csvwriter = csv.writer(csvfile)
+        checkpoint_start = 0
 
-            csvwriter.writerow(["prompt", "response", "label", "demographic"])
+        if "checkpoint_start" in demonstration_params:
+            checkpoint_start = demonstration_params["checkpoint_start"]
 
-            for prompt, response, label, demographic in zip(
-                prompts,
-                responses,
-                test_df["labels"].tolist(),
-                test_df["demographics"].tolist(),
-            ):
-                csvwriter.writerow([prompt, response, label, demographic])
+        responses = model.generate_from_prompts(
+            prompts,
+            output_folder,
+            model_name,
+            dataset,
+            demonstration,
+            test_df,
+            checkpoint_start,
+        )
 
         logging.info(
             f"Completed running {model_name} on {dataset} with {demonstration}"
@@ -256,6 +263,8 @@ def run_dataset(
             result.append({recall_result: recall_results[recall_result]})
 
         results.append(result)
+
+        del model
 
     if not os.path.exists(os.path.join(output_folder, "results")):
         os.makedirs(os.path.join(output_folder, "results"), exist_ok=True)
@@ -309,13 +318,35 @@ def main(args):
                 f"Starting to create {demonstration} demonstration for {dataset} dataset"
             )
 
-            # create prompts from dataset
-            prompts, filtered_test_df, demonstration_type = build_demonstration(
-                demonstration,
-                demonstrations[demonstration],
-                train_df,
-                test_df,
-                overall_demographics,
+            if "checkpoint" in demonstrations[demonstration]:
+                checkpoint_dir = demonstrations[demonstration]["checkpoint"]
+                prompts = pd.read_csv(
+                    os.path.join(
+                        checkpoint_dir, f"{dataset}_{demonstration}_prompts.csv"
+                    )
+                )["prompts"].tolist()
+                filtered_test_df = pd.read_csv(
+                    os.path.join(checkpoint_dir, f"{dataset}_{demonstration}_test.csv")
+                )
+                demonstration_type = get_demonstration_types(demonstration).type
+
+            else:
+                # create prompts from dataset
+                prompts, filtered_test_df, demonstration_type = build_demonstration(
+                    demonstration,
+                    demonstrations[demonstration],
+                    train_df,
+                    test_df,
+                    overall_demographics,
+                )
+
+            pd.DataFrame({"prompts": prompts}).to_csv(
+                os.path.join(output_folder, f"{dataset}_{demonstration}_prompts.csv"),
+                index=False,
+            )
+            filtered_test_df.to_csv(
+                os.path.join(output_folder, f"{dataset}_{demonstration}_test.csv"),
+                index=False,
             )
 
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")

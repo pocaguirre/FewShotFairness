@@ -1,5 +1,7 @@
 from typing import Dict, Any, List, Iterable
 
+import pandas as pd
+
 
 class apimodel:
     def __init__(
@@ -38,11 +40,20 @@ class apimodel:
         """
         pass
 
-    def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
-        """Send all examples to model and get and clean their resposnes
+    def generate_from_prompts(
+        self,
+        prompts: Iterable[str],
+        output_folder: str,
+        model_name: str,
+        dataset: str,
+        demonstration: str,
+        test_df: pd.DataFrame,
+        checkpoint: int,
+    ) -> List[str]:
+        """Send all prompts to model and get and clean their resposnes
 
-        :param examples: list of prompts
-        :type examples: Iterable[str]
+        :param prompts: list of prompts
+        :type prompts: Iterable[str]
         :return: list of cleaned responses
         :rtype: List[str]
         """

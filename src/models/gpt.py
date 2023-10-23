@@ -1,3 +1,5 @@
+import csv
+
 import os
 
 import logging
@@ -7,6 +9,8 @@ from typing import Iterable, List, Dict, Any
 import backoff
 
 import openai
+
+import pandas as pd
 
 from tqdm import tqdm
 
@@ -73,50 +77,91 @@ class gpt(apimodel):
         text = response["text"].replace("\n", " ").strip()
         return text
 
-    def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
-        """Send all examples to GPT model API and get its responses
+    def generate_from_prompts(
+        self,
+        prompts: Iterable[str],
+        output_folder: str,
+        model_name: str,
+        dataset: str,
+        demonstration: str,
+        test_df: pd.DataFrame,
+        checkpoint_start: int,
+    ) -> List[str]:
+        """Send all prompts to GPT model API and get its responses
 
-        :param examples: list of prompts
-        :type examples: Iterable[str]
+        :param prompts: list of prompts
+        :type prompts: Iterable[str]
         :return: list of cleaned responses
         :rtype: List[str]
         """
-        lines_length = len(examples)
+        lines_length = len(prompts)
         logger.info(f"Num examples = {lines_length}")
         i = 0
 
         responses = []
 
-        for i in tqdm(range(0, lines_length, self.batch_size), ncols=0):
-            # batch prompts together
-            prompt_batch = examples[i : min(i + self.batch_size, lines_length)]
-            try:
-                # try to get respones
-                response = self.get_response(prompt_batch)
+        labels = test_df["labels"].tolist()
+        demographics = test_df["demographics"].tolist()
 
-                response_batch = [""] * len(prompt_batch)
+        if os.path.exists(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv")
+        ):
+            mode = "a"
+        else:
+            mode = "w"
+        with open(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv"),
+            mode,
+        ) as csvfile:
+            csvwriter = csv.writer(csvfile)
+            if mode == "w":
+                csvwriter.writerow(["prompt", "response", "label", "demographic"])
+            for i in tqdm(range(checkpoint_start* self.batch_size, lines_length, self.batch_size), ncols=0):
+                # batch prompts together
+                prompt_batch = prompts[i : min(i + self.batch_size, len(prompts))]
+                label_batch = labels[i : min(i + self.batch_size, len(labels))]
+                demographics_batch = demographics[
+                    i : min(i + self.batch_size, len(demographics))
+                ]
 
-                # order the responses as they are async
-                for choice in response.choices:
-                    response_batch[choice.index] = self.format_response(choice.text)
+                try:
+                    # try to get respones
+                    response = self.get_response(prompt_batch)
 
-                responses.extend(response_batch)
+                    response_batch = [""] * len(prompt_batch)
 
-            # catch any connection exceptions
-            except:
-                # try each prompt individually
-                for i in range(len(prompt_batch)):
-                    try:
-                        _r = self.get_response(prompt_batch[i])["choices"][0]
-                        line = self.format_response(_r)
-                        responses.append(line)
-                    except:
-                        # if there is an exception make blank
-                        l_prompt = len(prompt_batch[i])
-                        _r = self.get_response(prompt_batch[i][l_prompt - 2000 :])[
-                            "choices"
-                        ][0]
-                        line = self.format_response(_r)
-                        responses.append(line)
+                    # order the responses as they are async
+                    for choice in response.choices:
+                        response_batch[choice.index] = self.format_response(choice.text)
+
+                    responses.extend(response_batch)
+
+                # catch any connection exceptions
+                except:
+                    # try each prompt individually
+                    for i in range(len(prompt_batch)):
+                        try:
+                            _r = self.get_response(prompt_batch[i])["choices"][0]
+                            line = self.format_response(_r)
+                            responses.append(line)
+                        except:
+                            # if there is an exception make blank
+                            l_prompt = len(prompt_batch[i])
+                            _r = self.get_response(prompt_batch[i][l_prompt - 2000 :])[
+                                "choices"
+                            ][0]
+                            line = self.format_response(_r)
+                            responses.append(line)
+                
+                out = list(
+                        zip(
+                            prompt_batch,
+                            response_batch,
+                            label_batch,
+                            demographics_batch,
+                        )
+                    )
+
+                csvwriter.writerows(out)
 
         return responses

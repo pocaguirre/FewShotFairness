@@ -1,3 +1,5 @@
+import csv
+
 import os
 
 import requests
@@ -5,6 +7,8 @@ import requests
 from typing import Iterable, List, Dict, Any
 
 import backoff
+
+import pandas as pd
 
 from tqdm import tqdm
 
@@ -66,7 +70,16 @@ class hf(apimodel):
         text = response["generated_text"].replace("\n", " ").strip()
         return text
 
-    def generate_from_prompts(self, examples: Iterable[str]) -> List[str]:
+    def generate_from_prompts(
+        self,
+        prompts: Iterable[str],
+        output_folder: str,
+        model_name: str,
+        dataset: str,
+        demonstration: str,
+        test_df: pd.DataFrame,
+        checkpoint_start: int,
+    ) -> List[str]:
         """Send all examples to HF model API and get its responses
 
         :param examples: list of prompts
@@ -76,12 +89,36 @@ class hf(apimodel):
         """
         responses = []
 
-        # loop through examples provided
-        for example in tqdm(examples):
-            # try to get response
-            # catch exceptions that happen
-            response = self.get_response(example)
-            formatted_response = self.format_response(response)
-            responses.append(formatted_response)
+        labels = test_df["labels"].tolist()
+        demographics = test_df["demographics"].tolist()
+
+        if os.path.exists(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv")
+        ):
+            mode = "a"
+        else:
+            mode = "w"
+        
+        with open(
+            os.path.join(output_folder, f"{model_name}_{dataset}_{demonstration}.csv"),
+            mode,
+        ) as csvfile:
+            csvwriter = csv.writer(csvfile)
+            if mode == "w":
+                csvwriter.writerow(["prompt", "response", "label", "demographic"])
+            # loop through examples provided
+            for i in range(checkpoint_start, len(prompts)):
+                prompt = prompts[i]
+                label = labels[i]
+                demographic = demographics[i]
+
+                # try to get response
+                # catch exceptions that happen
+                response = self.get_response(prompt)
+                formatted_response = self.format_response(response)
+
+                csvwriter.writerow([prompt, response, label, demographic])
+
+                responses.append(formatted_response)
 
         return responses
