@@ -199,6 +199,16 @@ def run_dataset(
 
         if not os.path.exists(output_folder):
             os.makedirs(output_folder, exist_ok=True)
+        
+        pd.DataFrame({"prompts": prompts}).to_csv(
+                os.path.join(output_folder, f"{dataset}_{demonstration}_prompts.csv"),
+                index=False,
+        )
+        
+        test_df.to_csv(
+            os.path.join(output_folder, f"{dataset}_{demonstration}_test.csv"),
+            index=False,
+        )
 
         checkpoint_start = 0
 
@@ -340,15 +350,6 @@ def main(args):
                     overall_demographics,
                 )
 
-            pd.DataFrame({"prompts": prompts}).to_csv(
-                os.path.join(output_folder, f"{dataset}_{demonstration}_prompts.csv"),
-                index=False,
-            )
-            filtered_test_df.to_csv(
-                os.path.join(output_folder, f"{dataset}_{demonstration}_test.csv"),
-                index=False,
-            )
-
             logging.info(f"Created {demonstration} demonstration for {dataset} dataset")
 
             # run dataset with all models provided
@@ -363,6 +364,8 @@ def main(args):
                 datasets[dataset]["models"],
                 output_folder,
             )
+
+            
 
 
 if __name__ == "__main__":
